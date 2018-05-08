@@ -1,0 +1,4 @@
+name: pySTOPS
+dependencies:
+  - pandas
+  - geopandas
