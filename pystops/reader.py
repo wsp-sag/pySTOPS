@@ -45,6 +45,33 @@ _table_parameters = {
         'int_columns': 'station_group',
         'index_col': 'station_group',
     },
+    '3.01': {
+        'end_table_tag': 'TOTAL',
+        'skip_rows': 8,
+        'df_drop_top_rows': 1,
+        'rename_columns': {
+            'Unnamed: 0': 'origin'
+        },
+        'index_col': 'origin',
+    },
+    '3.02': {
+        'end_table_tag': 'TOTAL',
+        'skip_rows': 8,
+        'df_drop_top_rows': 1,
+        'rename_columns': {
+            'Unnamed: 0': 'origin'
+        },
+        'index_col': 'origin',
+    },
+    '3.03': {
+        'end_table_tag': 'TOTAL',
+        'skip_rows': 8,
+        'df_drop_top_rows': 1,
+        'rename_columns': {
+            'Unnamed: 0': 'origin'
+        },
+        'index_col': 'origin',
+    },
     '9.01': {
         'end_table_tag': '\x00',
         'skip_rows': 8,
