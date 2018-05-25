@@ -45,6 +45,25 @@ _table_parameters = {
         'int_columns': 'station_group',
         'index_col': 'station_group',
     },
+    '2.08': {
+        'end_table_tag': 'Number of unique',
+        'skip_rows': 8,
+        # 'df_drop_top_rows': 1,
+        'df_drop_tail_rows': 1,
+        'reset_header': True,
+        'widths': [6, 22, 11, 11, 11, 10],
+        'rename_columns': {
+            0: 'route_group_num',
+            1: 'route_group',
+            2: 'pre_calib_board',
+            3: 'route_count',
+            4: 'route_target',
+            5: 'post_calib_board'
+        },
+        #'convert_numerics': True,
+        #'int_columns': 'station_group',
+        'index_col': 'route_group_num',
+    },
     '3.01': {
         'end_table_tag': 'TOTAL',
         'skip_rows': 8,
