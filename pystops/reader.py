@@ -129,6 +129,7 @@ _table_parameters = {
         'skip_rows': 7,
         'reset_header': True,
         'widths': [25, 30] + [10] * 13,
+        'df_drop_top_rows': 1,
         'rename_columns': {
             0: 'route_id',
             1: 'route_name',
@@ -145,7 +146,12 @@ _table_parameters = {
             12: 'bld_knr',
             13: 'bld_pnr',
             14: 'bld_all',
-        }
+        },
+        'int_columns': ['route_count',
+            'exist_wlk', 'exist_knr', 'exist_pnr', 'exist_all',
+            'nb_wlk', 'nb_knr', 'nb_pnr', 'nb_all',
+            'bld_wlk', 'bld_knr', 'bld_pnr', 'bld_all',
+        ]
     }
 }
 
