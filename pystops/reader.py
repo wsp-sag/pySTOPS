@@ -91,6 +91,15 @@ _table_parameters = {
         },
         'index_col': 'origin',
     },
+    '4.01': {
+        'end_table_tag': 'Total',
+        'skip_rows': 5,
+        'df_drop_top_rows': 1,
+        'rename_columns': {
+            'Idist': 'origin'
+        },
+        'index_col': 'origin',
+    },
     '9.01': {
         'end_table_tag': '\x00',
         'skip_rows': 8,
