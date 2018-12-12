@@ -123,13 +123,37 @@ _table_parameters = {
             15: 'bld_xfr',
             16: 'bld_all',
         }
+    },
+    '10.01': {
+        'end_table_tag': '               Total',
+        'skip_rows': 7,
+        'reset_header': True,
+        'widths': [25, 30] + [10] * 13,
+        'rename_columns': {
+            0: 'route_id',
+            1: 'route_name',
+            2: 'route_count',
+            3: 'exist_wlk',
+            4: 'exist_knr',
+            5: 'exist_pnr',
+            6: 'exist_all',
+            7: 'nb_wlk',
+            8: 'nb_knr',
+            9: 'nb_pnr',
+            10: 'nb_all',
+            11: 'bld_wlk',
+            12: 'bld_knr',
+            13: 'bld_pnr',
+            14: 'bld_all',
+        }
     }
 }
 
 
 def parse_table(result_file_path, table_label):
     parse_parameters = _table_parameters[table_label]
-    start_table_tag = 'Table     {}\n'.format(table_label)
+    start_table_tag = 'Table{:>9s}\n'.format(table_label)
+
     end_table_tag = parse_parameters['end_table_tag']
     skip_rows = parse_parameters['skip_rows']
 
