@@ -1,4 +1,5 @@
 name: pySTOPS
 dependencies:
+  - python=3
   - pandas
   - geopandas
