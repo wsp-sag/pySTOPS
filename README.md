@@ -27,3 +27,20 @@ conda activate pystops
 ```python
 python example.py
 ```
+
+## Usage
+In a real world usage, reading in a STOPS Report table into a Pandas dataframe becomes trivial.
+
+```python
+import pystops
+
+pystops.parse_table(report_file, '10.01')
+```
+
+For the data file in the example directory, this will return the following Pandas dataframe.
+
+|route_id|route_name               |route_count|exist_walk|exist_knr|exist_pnr|exist_all|...|bld_all|
+|--------|----------               |----------:|---------:|--------:|--------:|--------:|---|------:|
+|1&C     |--1-Metric/South Congress| 6227      | 5394     | 242     |      117|  5754   |...|    117|
+|...     |...                      | ...       |          |         |         |         |...|       |
+|990&C   |--990-Manor/Elgin Express| 83        | 1        |     42  | 10      |  52     |...|     52|
