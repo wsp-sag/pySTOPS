@@ -152,6 +152,16 @@ _table_parameters = {
             'nb_wlk', 'nb_knr', 'nb_pnr', 'nb_all',
             'bld_wlk', 'bld_knr', 'bld_pnr', 'bld_all',
         ]
+    },
+    '350.01': {
+        'end_table_tag': 'Total',
+        'skip_rows': 5,
+        'df_drop_top_rows': 1,
+        'rename_columns': {
+            'Idist': 'origin'
+        },
+        'index_col': 'origin',
+        #'convert_numerics': True,
     }
 }
 
