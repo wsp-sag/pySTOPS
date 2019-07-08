@@ -6,24 +6,24 @@ Happily accepting additions.
 ## Installation
 The project relies on Python.
 
-3. Create a pySTOPS-oriented virtual python environment. Recommend using a Anaconda Conda virtual env with the environment.yml included in this repository.
+1. Create a pySTOPS-oriented virtual python environment. Recommend using a Anaconda Conda virtual env with the environment.yml included in this repository.
 ```
 >>conda env create -f environment.yml
 ```
-4. Switch the Virtual Env
+2. Switch the Virtual Env
 ```
 conda activate pystops
 ```
-5. Use the setup.py to install the package.
+3. Use the setup.py to install the package.
 ```
 >>python setup.py install
 ```
-6. Move to the test folder.
+4. Move to the test folder.
 ```
 >>cd tests
 ```
 
-7. Run example
+5. Run example
 ```python
 python example.py
 ```
