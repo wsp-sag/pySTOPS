@@ -74,6 +74,7 @@ _table_parameters = {
                     df_drop_top_rows=1,index_col='origin',
                     rename_columns={'Idist': 'origin'}),
 
+    # Stop Level Boardings
     '9.01': TableDef('9.01', end_table_tag='\x00', skip_rows=8,
                      reset_header=True,
                      rename_columns={
@@ -81,8 +82,13 @@ _table_parameters = {
                          2: 'exist_wlk', 3: 'exist_knr', 4: 'exist_pnr', 5: 'exist_xfr', 6: 'exist_all',
                          7: 'nb_wlk', 8: 'nb_knr', 9: 'nb_pnr', 10: 'nb_xfr', 11: 'nb_all',
                          12: 'bld_wlk', 13: 'bld_knr', 14: 'bld_pnr', 15: 'bld_xfr', 16: 'bld_all',
-                     }),
+                     },
+                     int_columns=['exist_wlk','exist_knr', 'exist_pnr', 'exist_xfr', 'exist_all',
+                                  'nb_wlk', 'nb_knr', 'nb_pnr', 'nb_xfr', 'nb_all',
+                                  'bld_wlk', 'bld_knr', 'bld_pnr', 'bld_xfr', 'bld_all']
+                     ),
 
+    # Route Ridership
     '10.01': TableDef('10.01', end_table_tag='               Total', skip_rows=7,
                       reset_header=True, widths=[25, 30] + [10] * 13, df_drop_top_rows=1,
                       rename_columns={
@@ -98,8 +104,37 @@ _table_parameters = {
                           'bld_wlk', 'bld_knr', 'bld_pnr', 'bld_all',
                       ]),
 
+    #Existing - HBW - TRN - 0 Car
+    '30.01': TableDef('30.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    #Existing - HBW - TRN - 1 Car
+    '51.01': TableDef('51.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    #Existing - HBW - TRN - 2 Car
+    '72.01': TableDef('72.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+                       
     #Existing - HBW - TRN - ALL
     '93.01': TableDef('93.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    #Existing - HBO - TRN - 0 Car
+    '114.01': TableDef('114.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    #Existing - HBO - TRN - 1 Car
+    '135.01': TableDef('135.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    #Existing - HBO - TRN - 2 Car
+    '156.01': TableDef('156.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
@@ -108,13 +143,58 @@ _table_parameters = {
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
+    #Existing - NHB - TRN - 0 Car
+    '198.01': TableDef('198.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    #Existing - NHB - TRN - 1 Car
+    '219.01': TableDef('219.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    #Existing - NHB - TRN - 2 Car
+    '240.01': TableDef('240.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+                       
     #Existing - NHB - TRN - ALL
     '261.01': TableDef('261.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
+    #Existing - All Trips - TRN - 0 Car
+    '282.01': TableDef('282.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+                       
+    #Existing - All Trips - TRN - 1 Car
+    '303.01': TableDef('303.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+                       
+    #Existing - All Trips - TRN - 2 Car
+    '324.01': TableDef('324.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+                
     #Existing - All Trips - TRN - ALL
     '345.01': TableDef('345.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # No Build - HBW - TRN - 0 Car
+    '366.01': TableDef('1017.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    # No Build - HBW - TRN - 1 Car
+    '387.01': TableDef('387.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    # No Build - HBW - TRN - 2 Car
+    '408.01': TableDef('408.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
@@ -123,33 +203,135 @@ _table_parameters = {
                       df_drop_top_rows=1, index_col='origin',
                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
+    # No Build - HBO - TRN - O Car
+    '450.01': TableDef('450.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    # No Build - HBO - TRN - 1 Car
+    '474.01': TableDef('474.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
+    # No Build - HBO - TRN - 2 Car
+    '492.01': TableDef('492.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
     # No Build - HBO - TRN - ALL
     '513.01': TableDef('513.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
+    # No Build - NHB - TRN - 0 Car
+    '534.01': TableDef('534.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # No Build - NHB - TRN - 1 Car
+    '555.01': TableDef('555.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # No Build - NHB - TRN - 2 Car
+    '576.01': TableDef('576.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
     # No Build - NHB - TRN - ALL
     '597.01': TableDef('597.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
+    # No Build - All Trips - TRN - 0 Car
+    '618.01': TableDef('618.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    # No Build - All Trips - TRN - 1 Car
+    '639.01': TableDef('639.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    # No Build - All Trips - TRN - 2 Car
+    '660.01': TableDef('660.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
     # No Build - All Trips - TRN - ALL
     '681.01': TableDef('681.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
+    # Build - HBW - TRN - 0 Car
+    '702.01': TableDef('702.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - HBW - TRN - 1 Car
+    '723.01': TableDef('723.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - HBW - TRN - 2 Car
+    '744.01': TableDef('744.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+    
     # Build - HBW - TRN - ALL
     '765.01': TableDef('765.01', end_table_tag='Total', skip_rows=5,
                       df_drop_top_rows=1, index_col='origin',
                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - HBO - TRN - 0 Car
+    '786.01': TableDef('786.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - HBO - TRN - 1 Car
+    '807.01': TableDef('807.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - HBO - TRN - 2 Car
+    '828.01': TableDef('828.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
     # Build - HBO - TRN - ALL
     '849.01': TableDef('849.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
+    # Build - NHB - TRN - 0 Car
+    '870.01': TableDef('870.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - NHB - TRN - 1 Car
+    '891.01': TableDef('891.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - NHB - TRN - 2 Car
+    '912.01': TableDef('912.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
     # Build - NHB - TRN - ALL
     '933.01': TableDef('933.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - All Trips - TRN - ALL
+    '954.01': TableDef('954.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - All Trips - TRN - ALL
+    '975.01': TableDef('975.01', end_table_tag='Total', skip_rows=5,
+                       df_drop_top_rows=1, index_col='origin',
+                       rename_columns={'Idist': 'origin'}, convert_numerics=True),
+
+    # Build - All Trips - TRN - ALL
+    '996.01': TableDef('996.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
@@ -201,6 +383,9 @@ def parse_table(result_file_path, table_label):
     if table_def.rename_columns is not None:
         df = df.rename(columns=table_def.rename_columns)
 
+    if table_def.int_columns is not None or table_def.convert_numerics:
+        df = df.applymap(np.vectorize(replace_dash))
+
     if table_def.int_columns is not None:
         df[table_def.int_columns] = df[table_def.int_columns].astype(np.int64)
 
@@ -208,7 +393,6 @@ def parse_table(result_file_path, table_label):
         df = df.set_index(table_def.index_col)
 
     if table_def.convert_numerics:
-        df = df.applymap(np.vectorize(replace_dash))
         df = df.apply(pd.to_numeric)
 
     return df.copy()
