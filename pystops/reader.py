@@ -184,7 +184,7 @@ _table_parameters = {
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
 
     # No Build - HBW - TRN - 0 Car
-    '366.01': TableDef('1017.01', end_table_tag='Total', skip_rows=5,
+    '366.01': TableDef('366.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
     
@@ -209,7 +209,7 @@ _table_parameters = {
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
     
     # No Build - HBO - TRN - 1 Car
-    '474.01': TableDef('474.01', end_table_tag='Total', skip_rows=5,
+    '471.01': TableDef('471.01', end_table_tag='Total', skip_rows=5,
                        df_drop_top_rows=1, index_col='origin',
                        rename_columns={'Idist': 'origin'}, convert_numerics=True),
     
