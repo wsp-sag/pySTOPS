@@ -74,6 +74,12 @@ _table_parameters = {
                     df_drop_top_rows=1,index_col='origin',
                     rename_columns={'Idist': 'origin'}),
 
+    '8.01': TableDef('8.01', end_table_tag='Total', skip_rows=5,
+                     df_drop_top_rows=1, index_col='origin',
+                     rename_columns={'Idist': 'origin'},
+                     convert_numerics=True
+                     ),
+
     # Stop Level Boardings
     '9.01': TableDef('9.01', end_table_tag='\x00', skip_rows=8,
                      reset_header=True,
