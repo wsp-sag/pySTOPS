@@ -25,6 +25,11 @@ class TableDef:
 
 
 _table_parameters = {
+    '1.02': TableDef('1.02', ' Adjustment of', skip_rows=3, df_drop_top_rows=1,
+                     df_drop_tail_rows=4, reset_header=False,
+                     rename_columns=None, convert_numerics=False, 
+                     int_columns=['BoardCount'],
+                     index_col=None),
     '2.04': TableDef('2.04', 'COUNT', skip_rows=10, df_drop_top_rows=1,
                      df_drop_tail_rows=2, rename_columns={'Unnamed: 0': 'origin'},
                      index_col = 'origin', convert_numerics=True,
@@ -73,6 +78,10 @@ _table_parameters = {
     '4.01': TableDef('4.01', end_table_tag='Total', skip_rows=5,
                     df_drop_top_rows=1,index_col='origin',
                     rename_columns={'Idist': 'origin'}),
+    
+    '4.04': TableDef('4.04', end_table_tag='Total', skip_rows=5,
+                    df_drop_top_rows=1,
+                    rename_columns={'Unnamed: 0': 'origin'}),
 
     '8.01': TableDef('8.01', end_table_tag='Total', skip_rows=5,
                      df_drop_top_rows=1, index_col='origin',
@@ -402,3 +411,23 @@ def parse_table(result_file_path, table_label):
         df = df.apply(pd.to_numeric)
 
     return df.copy()
+
+
+def summarize_access_modes(result_file_path, percentage=False):
+    table_label = '9.01'
+    tbl = parse_table(result_file_path, table_label)
+    table_def = _table_parameters[table_label]
+    
+    if not percentage:
+        return tbl[table_def.int_columns].sum()
+    
+    exist = tbl[['exist_wlk','exist_knr', 'exist_pnr', 'exist_xfr']].sum() / tbl[['exist_wlk','exist_knr', 'exist_pnr', 'exist_xfr']].sum().sum()
+    nb = tbl[['nb_wlk', 'nb_knr', 'nb_pnr', 'nb_xfr']].sum() / tbl[['nb_wlk', 'nb_knr', 'nb_pnr', 'nb_xfr']].sum().sum()
+    bld = tbl[['bld_wlk', 'bld_knr', 'bld_pnr', 'bld_xfr']].sum() / tbl[['bld_wlk', 'bld_knr', 'bld_pnr', 'bld_xfr']].sum().sum()
+    
+    exist.index = exist.index.str[-3:]
+    nb.index = nb.index.str[-3:]
+    bld.index = bld.index.str[-3:]
+    
+    return pd.concat([exist, nb, bld], axis=1, keys=['existing', 'nb', 'bld']).transpose()
+    
