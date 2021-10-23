@@ -8,7 +8,7 @@ def read_skim(result_file, scenario='build', mode='fg', access='walk', period='p
     assert scenario in ('exist', 'nobuild', 'build')
     assert mode in ('bs', 'fg', 'tr')
     assert access in ('walk', 'pnr', 'knr')
-    assert period in ('pk')
+    assert period in ('op', 'pk')
     
     scenario_aliases = {
         'exist': 'EXST',
