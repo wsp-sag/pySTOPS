@@ -78,6 +78,10 @@ _table_parameters = {
     '4.01': TableDef('4.01', end_table_tag='Total', skip_rows=5,
                     df_drop_top_rows=1,index_col='origin',
                     rename_columns={'Idist': 'origin'}),
+                    
+    '4.02': TableDef('4.02', end_table_tag='Total', skip_rows=5,
+                    df_drop_top_rows=1,index_col='origin',
+                    rename_columns={'Idist': 'origin'}),
     
     '4.04': TableDef('4.04', end_table_tag='Total', skip_rows=5,
                     df_drop_top_rows=1,
