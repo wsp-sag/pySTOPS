@@ -4,11 +4,60 @@ import numpy as np
 import pandas as pd
 
 
-def read_skim(result_file, scenario='build', mode='fg', access='walk', period='pk'):
-    assert scenario in ('exist', 'nobuild', 'build')
-    assert mode in ('bs', 'fg', 'tr')
-    assert access in ('walk', 'pnr', 'knr')
-    assert period in ('op', 'pk')
+def _apply_stop_names(skim, result_file, scenario='build', mode='fg', period='pk'):
+    root_skim_path = _root_skim_path(result_file, scenario, mode, '', period)
+    dtypes = {
+        'stop_no': np.int16,
+        'orig_stop_id': str,
+        'stop_name': str
+    }
+
+    stops = pd.read_csv(f'{root_skim_path}stops.txt',
+                        usecols=dtypes.keys(), dtype=dtypes
+                        )
+
+    for col in ['ISTOP_NO-01', 'JSTOP_NO-01','ISTOP_NO-02','JSTOP_NO-02','ISTOP_NO-03','JSTOP_NO-03','ISTOP_NO-04','JSTOP_NO-04']:
+        skim = pd.merge(skim, stops, left_on=col, right_on='stop_no', how='left')
+        skim = skim.drop(columns=['stop_no', col])
+        skim = skim.rename(columns={'orig_stop_id': col, 'stop_name': f'{col}_name'})
+    
+    return skim
+
+
+def _apply_trip_names(skim, result_file, scenario='build', mode='fg', period='pk'):
+    root_skim_path = _root_skim_path(result_file, scenario, mode, '', period)
+    
+
+    cols = ['trip_no','comma','trip_id','comma','orig_trip_id', 'route_no', 'comma',
+            'route_id','comma','orig_route_id','comma',
+            'route_short_name','comma','route_long_name','comma','route_desc','comma',
+            'route_type','comma','route_used','comma','begin_time','comma','end_time','comma',
+            'mileage']
+
+    widths = [10,1,10,1,25,10,1,
+              10,1,25,1,40,1,
+              40,1,40,1,2,1,
+              2,1,10,1,10,1,10]
+
+    trips = pd.read_fwf(f'{root_skim_path}trips.txt', widths=widths)
+    trips.columns = cols
+    trips = trips[['trip_no', 'orig_trip_id', 'orig_route_id', 'route_short_name']].copy()
+    trips[['orig_trip_id', 'orig_route_id', 'route_short_name']] = trips[['orig_trip_id', 'orig_route_id', 'route_short_name']].applymap(lambda x: x.strip())
+    trips.columns = ['trip_no', 'trip_id', 'route_id', 'route_short_name']
+    
+    for col in ['TRIP_NO-01', 'TRIP_NO-02', 'TRIP_NO-03', 'TRIP_NO-04']:
+        skim = pd.merge(skim, trips, left_on=col, right_on='trip_no', how='left')
+        skim = skim.drop(columns=['trip_no', col])
+        skim = skim.rename(columns={'trip_id': col, 'route_id': f'{col}_route_id', 'route_short_name': f'{col}_route_name'})
+    
+    return skim
+
+
+def _root_skim_path(result_file, scenario='build', mode='fg', access='walk', period='pk'):
+    assert scenario in ('exist', 'nobuild', 'build', '')
+    assert mode in ('bs', 'fg', 'tr', '')
+    assert access in ('walk', 'pnr', 'knr', '')
+    assert period in ('op', 'pk', '')
     
     scenario_aliases = {
         'exist': 'EXST',
@@ -20,6 +69,7 @@ def read_skim(result_file, scenario='build', mode='fg', access='walk', period='p
         'walk': 'WLK',
         'knr': 'KNR',
         'pnr': 'PNR',
+        '': ''
     }
     
     # Build out the skim path
@@ -36,8 +86,18 @@ def read_skim(result_file, scenario='build', mode='fg', access='walk', period='p
     if scenario == 'nobuild':
         core_name = nobld
     
-    skim_path = os.path.join(skim_path, f'AC_{core_name}_STOPS_Path_{period.upper()}_{mode.upper()}_{scenario_aliases[scenario]}{access_aliases[access]}skim.bin')
-    return binary_as_pandas(skim_path)
+    return os.path.join(skim_path, f'AC_{core_name}_STOPS_Path_{period.upper()}_{mode.upper()}_{scenario_aliases[scenario]}{access_aliases[access]}skim')
+
+
+def read_skim(result_file, scenario='build', mode='fg', access='walk', period='pk', apply_stop_name=False):
+    root_skim_path = _root_skim_path(result_file, scenario, mode, access, period)
+    
+    skim_path = f'{root_skim_path}.bin'
+    skim = binary_as_pandas(skim_path)
+    if apply_stop_name:
+        skim = _apply_stop_names(skim, result_file, scenario, mode, period)
+        skim = _apply_trip_names(skim, result_file, scenario, mode, period)
+    return skim
 
 
 def retrieve_binary_structure(bin_file_path):
