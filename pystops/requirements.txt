@@ -1,0 +1,6 @@
+pandas
+geopandas
+pathlib
+glob
+shapely
+numpy
