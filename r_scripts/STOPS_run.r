@@ -1,3 +1,10 @@
+# -------------INPUT FILES-------------------
+input_dir <- "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input"
+output_dir <- "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_output"
+tab <- c("4.02", "4.03", "8.01", "10.03", "10.04", "706.03", "769.03", "958.03", "1021.03")
+## Source R function
+source("C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/STOPS.R")
+
 # Step 1. Get input ready
 
 #Rename the PRN files to "CUR" if current year and "FUT" if future year
@@ -7,27 +14,22 @@
 # "853.03", "937.01", "937.03", "1021.01", "1021.03"
 
 ## Type the location of prn file and desired table numbers.
-mainDir <- "C:/Users/ATTURU/Documents/projects/27612.2720_sorta_cig/fta_temp/r6_hamilton_alt1/"
-tab <- c("4.02", "4.03", "8.01", "10.03", "10.04", "706.03", "769.03", "958.03", "1021.03")
-
-## Source R function
-source("C:/Users/ATTURU/Documents/projects/27612.2720_sorta_cig/fta_temp/STOPS.R")
 
 ## Extract tables
-gettable(mainDir,tab)
+gettable(input_dir,tab)
 
 # Step 2. Combine all CSV into one XLSX
 ## Create output spreadsheet
-setwd(mainDir)
-output <- paste(mainDir, "/Summary.xlsx", sep = "")
+setwd(output_dir)
+output <- paste(output_dir, "/Summary.xlsx", sep = "")
 wb <- loadWorkbook(output, create=TRUE)
 fname = list.files(pattern = ".prn")
 
 ## Read current/future scenario CSV
 for(fn in fname){
-setwd(mainDir)
+setwd(output_dir)
 scenario <- gsub(".prn","", fn)
-dir <- paste(mainDir, scenario, sep = "/")
+dir <- paste(output_dir, scenario, sep = "/")
 setwd(dir)
   
 CSVname <- list.files(pattern = ".csv")
