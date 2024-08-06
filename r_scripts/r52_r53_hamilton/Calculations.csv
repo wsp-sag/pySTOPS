@@ -1,0 +1,18 @@
+"Scenario","Transit.Type","Current","Future"
+"HBW","Non-Transit Dependents",1012,1047
+"HBW","Transit Dependents",1047,1047
+"All Other Purposes","Non-Transit Dependents",1522,1575
+"All Other Purposes","Transit Dependents",1562,1551
+"Special Market 1","Non-Transit Dependents",0,0
+"Special Market 1","Transit Dependents",0,0
+"Special Market 1","Non-Transit Dependents",0,0
+"Special Market 1","Transit Dependents",0,0
+"Special Market 1","Non-Transit Dependents",0,0
+"Special Market 1","Transit Dependents",0,0
+"Special Market 1","Non-Transit Dependents",0,0
+"Special Market 1","Transit Dependents",0,0
+"New Transit Trips","-",602,656
+"Linked Transit TOP","-",5143,5220
+" ","-",0,0
+"PMT Difference","-",-5589,-5809
+"VMT Difference","-",-5080.90909090909,-5280.90909090909
