@@ -19,8 +19,8 @@ gettable <- function(input_dir, ouput_dir, tab){
     
     ## Create sub dir for outputs
     scenario <- gsub("*.prn","", fn)
-    if(file.exists(scenario)){
-    unlink(scenario, recursive = TRUE)
+    if(file.exists(file.path(output_dir, scenario))){
+    unlink(file.path(output_dir, scenario), recursive = TRUE)
     }
    dir.create(file.path(output_dir, scenario))
    setwd(file.path(output_dir, scenario))
@@ -123,7 +123,8 @@ gettable <- function(input_dir, ouput_dir, tab){
       }
       df[,1] <- apply(df[,1], 2,function(x)trimws(x,"r"))
       
-      write.csv(df, tabname, na = "", row.names = FALSE, col.names = FALSE)
+      #write.csv(df, tabname, na = "", row.names = FALSE, col.names = FALSE)
+      write.table(df, file = tabname, sep = ",", na = "", row.names = FALSE, col.names = FALSE)
     }
   }
   print("CSV Tables are ready!")

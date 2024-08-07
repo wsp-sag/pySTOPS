@@ -17,6 +17,7 @@ Summary_Table <- data.frame("Scenario" = Scenario,"Transit Type" = Transit_Type)
 
 for (s in Year){
   mainDir <- paste(output_dir, s, sep="/")
+  print(mainDir)
   setwd(mainDir)
   table_nos <- c("10.03", "10.04", "1021.03", "4.02", "4.03", "706.03", "769.03", "8.01", "958.03")
   table <- list()

@@ -1,9 +1,6 @@
 # -------------INPUT FILES-------------------
-input_dir <- "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input"
-output_dir <- "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_output"
-tab <- c("4.02", "4.03", "8.01", "10.03", "10.04", "706.03", "769.03", "958.03", "1021.03")
 ## Source R function
-source("C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/STOPS.R")
+# source("C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/STOPS.R")
 
 # Step 1. Get input ready
 
@@ -16,7 +13,7 @@ source("C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/STOPS.R")
 ## Type the location of prn file and desired table numbers.
 
 ## Extract tables
-gettable(input_dir, output_dir, tab)
+gettable(input_dir, output_dir, tables)
 
 # Step 2. Combine all CSV into one XLSX
 ## Create output spreadsheet
@@ -33,8 +30,6 @@ for(fn in fname){
 setwd(output_dir)
 scenario <- gsub(".prn","", fn)
 dir <- paste(output_dir, scenario, sep = "/")
-print(dir)
-setwd(dir)
   
 CSVname <- list.files(pattern = ".csv")
 tabname <- lapply(CSVname, function(x) paste(scenario, x))
@@ -54,6 +49,5 @@ for (nm in tabname) {
   } 
   ## If you see warning message saying JAVA running out of space, that's because R studio can only use space allocated to the software. 
   ## Solution is to clean the environment and close R studio. Re-run step 2 only.
-  
-saveWorkbook(wb)
+  saveWorkbook(wb)
 }
