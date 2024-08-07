@@ -15,9 +15,8 @@ rep <- (length(Scenario)-5)/2
 Transit_Type <- c(rep(c("Non-Transit Dependents", "Transit Dependents"),times= rep), rep(c("-"),times= 5))
 Summary_Table <- data.frame("Scenario" = Scenario,"Transit Type" = Transit_Type)
 
-for (s in Year)
-  {
-  mainDir <- paste("C:/projects/30901990A_sorta/fta_temp/r56_r57_2019_reading/",s, sep="")
+for (s in Year){
+  mainDir <- paste(output_dir, s, sep="/")
   setwd(mainDir)
   table_nos <- c("10.03", "10.04", "1021.03", "4.02", "4.03", "706.03", "769.03", "8.01", "958.03")
   table <- list()
@@ -87,15 +86,15 @@ for (s in Year)
 #Create Data frames
   if(s == "CUR/")
     { Summary_Table <- data.frame(Summary_Table, "Current" = values)
-      mainDir <- "C:/projects/30901990A_sorta/fta_temp/r56_r57_2019_reading/"
-      setwd(mainDir)
+      # mainDir <- "C:/projects/30901990A_sorta/fta_temp/r56_r57_2019_reading/"
+      setwd(output_dir)
       write.csv(VehAsg, "Vehicle Assignment (CUR).csv", na = "", row.names = FALSE, col.names = FALSE)
   }
     
   else if(s == "FUT/")
     {Summary_Table <- data.frame(Summary_Table, "Future" = values)
-     mainDir <- "C:/projects/30901990A_sorta/fta_temp/r56_r57_2019_reading/"
-     setwd(mainDir)
+     # mainDir <- "C:/projects/30901990A_sorta/fta_temp/r56_r57_2019_reading/"
+     setwd(output_dir)
      write.csv(VehAsg, "Vehicle Assignment (FUT).csv", na = "", row.names = FALSE, col.names = FALSE) 
     }
   
@@ -105,7 +104,7 @@ for (s in Year)
 print (Summary_Table)
 
 ## Create csv
-mainDir <- "C:/projects/30901990A_sorta/fta_temp/r56_r57_2019_reading/"
-setwd(mainDir)
+# mainDir <- "C:/projects/30901990A_sorta/fta_temp/r56_r57_2019_reading/"
+setwd(output_dir)
 
 write.csv(Summary_Table, "Calculations.csv", na = "", row.names = FALSE, col.names = FALSE)              

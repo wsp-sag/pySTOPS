@@ -16,20 +16,24 @@ source("C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/STOPS.R")
 ## Type the location of prn file and desired table numbers.
 
 ## Extract tables
-gettable(input_dir,tab)
+gettable(input_dir, output_dir, tab)
 
 # Step 2. Combine all CSV into one XLSX
 ## Create output spreadsheet
 setwd(output_dir)
 output <- paste(output_dir, "/Summary.xlsx", sep = "")
 wb <- loadWorkbook(output, create=TRUE)
+
+setwd(input_dir)
 fname = list.files(pattern = ".prn")
+setwd(output_dir)
 
 ## Read current/future scenario CSV
 for(fn in fname){
 setwd(output_dir)
 scenario <- gsub(".prn","", fn)
 dir <- paste(output_dir, scenario, sep = "/")
+print(dir)
 setwd(dir)
   
 CSVname <- list.files(pattern = ".csv")
@@ -53,5 +57,3 @@ for (nm in tabname) {
   
 saveWorkbook(wb)
 }
-
-  

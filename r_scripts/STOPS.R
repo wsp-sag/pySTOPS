@@ -7,10 +7,11 @@ lapply(x, library,  character.only = TRUE)
 rm(x)
 
 #Set Work Directory
-gettable <- function(mainDir, tab){
- setwd(mainDir)
+gettable <- function(input_dir, ouput_dir, tab){
+ setwd(input_dir)
   fname = list.files(pattern = "*.prn$")
   for (fn in fname) { 
+    setwd(input_dir)
     ## For each prn, read.
     con <- file(fn, "rt")
     lines <- readLines(con, skipNul = TRUE)
@@ -21,8 +22,8 @@ gettable <- function(mainDir, tab){
     if(file.exists(scenario)){
     unlink(scenario, recursive = TRUE)
     }
-   dir.create(file.path(mainDir, scenario))
-   setwd(file.path(mainDir, scenario))
+   dir.create(file.path(output_dir, scenario))
+   setwd(file.path(output_dir, scenario))
    
     
     ## Extract desired sections with tables 
@@ -53,7 +54,7 @@ gettable <- function(mainDir, tab){
      }
    }
     rm(ln,lines, flag, flag_e, flag_s, fn, con)
-    setwd(mainDir)
+    setwd(output_dir)
   }
   
   print("Finished extracting tables")
@@ -72,7 +73,7 @@ gettable <- function(mainDir, tab){
   format10 <- c("2.04")
   
   # Process all tables under directory
-  dirs <- list.dirs(mainDir)
+  dirs <- list.dirs(output_dir)
   for(dr in dirs[0:length(dirs)]){
     setwd(dr)
     fname = list.files(pattern = "txt")
