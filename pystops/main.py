@@ -1,4 +1,5 @@
 # %%
+import sys
 import os
 import glob
 import pandas as pd
@@ -14,10 +15,8 @@ import GTFS_processing
 from helper_functions import table_out_file, stack_columns, tag_rail_routes
 import reader as pystops
 
-# %%
-
+os.chdir(r"C:\Users\USLP095001\WSP O365\Metro_ABM_STOPS - 6_STOPS\client_package")
 CUR_DIR = Path(os.getcwd())
-# %%
 OUTPUT_DIR = CUR_DIR / "visualizations" / "db01" / "data"
 GTFS_PATH = CUR_DIR / "gtfs_data" / "GTFOutput"
 
@@ -25,7 +24,6 @@ ALL_GTFS_FOR_SHAPE = CUR_DIR / "gtfs_data" / "Inputs"
 GTFS_GEOJSON_OUTPUT_DIR = (
     CUR_DIR / "visualizations" / "db01" / "data" / "GTFS" / "gtfs_shapes.geojson"
 )
-# %% ---------------------------------------------------------------------------------------
 # ================== README =====================
 # this section of populates input_files variables variable
 # if you know what you are doing feel free to populate the input_files manually
@@ -36,7 +34,7 @@ GTFS_GEOJSON_OUTPUT_DIR = (
 STOP_RUNS_PATH = CUR_DIR / "STOPS_runs"
 input_folders = {
     "Existing": (STOP_RUNS_PATH / "A", "EXST"),
-    "No Build": (STOP_RUNS_PATH / "A", "NOBL"),
+    # "No Build": (STOP_RUNS_PATH / "A", "NOBL"),# this was requested to be removed, uncomment to re-add no build scenario
     "Scenario A": (STOP_RUNS_PATH / "A", "BLD-"),
     "Scenario B": (STOP_RUNS_PATH / "B", "BLD-"),
     "Scenario C": (STOP_RUNS_PATH / "C", "BLD-"),
@@ -268,22 +266,49 @@ for table, output_path in tables_and_outputs:
     one_table.to_csv(output_path)
 # %%
 
+input_files = [
+    key for key, (path, year, run_type) in input_files.items() if run_type == "BLD-"
+]
+# %%
 # one_table = pd.concat(combined)
+import pandas as pd
 
+combined_df = pd.read_csv(OUTPUT_DIR / "SECTION 16" / "16_combined.csv")
+pivoted = combined_df.pivot_table(
+    index=["ROUTE", "is_rail", "Period", "trip_type"],
+    columns="run_name",
+    values="count",
+    aggfunc="sum",
+)
+pivoted = pivoted[input_files]
+
+metro_buildup = (
+    combined_df[["ROUTE", "trip_type", "run_name", "count"]]
+    .groupby(["ROUTE", "run_name", "trip_type"])
+    .agg({"count": "sum"})
+    .unstack("run_name")
+)
+metro_buildup.columns = [col[1] for col in metro_buildup.columns]
+# %%
+deltas = metro_buildup[input_files].copy()
+for prev_col, current_col in zip(input_files[:-1], input_files[1:]):
+    deltas[current_col] = metro_buildup[current_col] - metro_buildup[prev_col]
+
+
+deltas.stack().to_frame().reset_index().rename(
+    columns={0: "count", "level_2": "run_name"}
+).to_csv(OUTPUT_DIR / "SECTION 16" / "16_incremental_buildup.csv")
+# %%
 # %%
 print("Post Processing Section 16")
-post_process_functions.post_process_section_16(OUTPUT_DIR / "SECTION 16")
+post_process_functions.post_process_section_16(OUTPUT_DIR / "SECTION 16", input_files)
 
+# %%
+# %%
 print("Post Processing Section 4")
 post_process_functions.post_process_section_4(OUTPUT_DIR / "SECTION 4")
-
+# "
+# %%
 print("Post Processing Section 10")
 post_process_functions.post_process_section_10(OUTPUT_DIR / "SECTION 10")
-# %%
-
-# %%
-
-# %%
-
-
 # %%

@@ -1,10 +1,12 @@
 
 import pandas as pd
 
-def post_process_section_16(section_16_folder):
+def post_process_section_16(section_16_folder, input_files):
     """
     code for aggregating and cleaning tables in section 16, 
     """
+    input_files = [key for key, (path, year, run_type) in input_files.items() if run_type == "BLD-"]
+
     to_be_concat = []
     for file in (section_16_folder).glob("*Scenario *route_summary.csv"):
         to_be_concat.append(pd.read_csv(file, index_col=False))
@@ -29,11 +31,22 @@ def post_process_section_16(section_16_folder):
         section_16_folder / "16_combined_station_summary.csv"
     )
 
+    # build deltas for incremental buildup
+    combined_df = pd.read_csv(section_16_folder / "16_combined.csv")
+    pivoted = combined_df.pivot_table(index="ROUTE", columns='run_name', values='count', aggfunc='sum')
+    pivoted = pivoted[input_files]
+    deltas = pivoted.copy()
+    for prev_col, current_col in zip(input_files[:-1], input_files[1:]):
+        deltas[current_col] = pivoted[current_col] - pivoted[prev_col]
+    
+    deltas.unstack().to_frame().reset_index().rename(columns={0: "count"}).to_csv(section_16_folder / "16_incremental_buildup.csv")
+
 
 def post_process_section_4(section_4_folder):
     """
     Post processing of 
     """
+
     names = {"4.01.csv": "Weekday Linked District-to-District Transit Trips", 
             "4.02.csv": "Weekday Incremental Linked Dist-to-Dist Transit Trips", 
             "4.03.csv": "Weekday Linked District-to-District Project Trips", 
@@ -50,10 +63,11 @@ def post_process_section_4(section_4_folder):
 
     incremental = dataframes[1][dataframes[1]["destination"] != "Total"]
     incremental = incremental.groupby("run_name").agg({"Transit Trip": "sum"})
+
     # buildup = incremental["Transit Trip"][3:] - incremental["Transit Trip"][2:-1]
     incremental["buildup"] = incremental["Transit Trip"] - incremental["Transit Trip"].shift(1)
     incremental.loc['Scenario A', "buildup"] = incremental.loc['Scenario A', "Transit Trip"]
-    incremental.iloc[2:].to_csv(section_4_folder / "incremental_buildup.csv")
+    incremental.iloc[1:].to_csv(section_4_folder / "incremental_buildup.csv")
 
 
 def route_no_to_group(s: pd.Series) -> pd.Series:
