@@ -25,13 +25,13 @@ gettable <- function(input_dir, ouput_dir, tab){
    dir.create(file.path(output_dir, scenario))
    setwd(file.path(output_dir, scenario))
    
+  
     
     ## Extract desired sections with tables 
     flag <- FALSE
     for (ln in lines){
       flag_s <- ifelse(grepl("Table  ", ln), TRUE, FALSE)
       flag_e <- ifelse(grepl("-------------------------------------------------------------------------------------------------------------------------------------" , ln), TRUE, FALSE)
-      
       ### Detect start of a table
       if(flag_s){
         tabnum <- gsub("Table\\s*","",ln)
@@ -51,7 +51,7 @@ gettable <- function(input_dir, ouput_dir, tab){
         }
         else{write(ln, tabname, append = TRUE)
         }
-     }
+      }
    }
     rm(ln,lines, flag, flag_e, flag_s, fn, con)
     setwd(output_dir)

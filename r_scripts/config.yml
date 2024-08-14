@@ -1,8 +1,8 @@
 # path of the folder containing the PRN files, note this will not commit a deep search
-input_dir: C:\Users\USLP095001\code\pytstops\pySTOPS\r_scripts\example_input
+input_dir: C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input
 
 # directory where the files can be outputted
-output_dir: C:\Users\USLP095001\code\pytstops\pySTOPS\r_scripts\example_output
+output_dir: C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_output
 
 # Supported tables including "2.03","2.04", "2.05", "4.01", "4.02", "4.03", "5.03", "8.01", "9.01", "10.01", "10.03", "10.04", "11.04", 
 # "12.01", "13.01", "13.02", "97.01", "181.01", "265.01", "349.01", "433.01", "517.01", "601.01", "685.01", "769.01", "769.03", "853.01", 

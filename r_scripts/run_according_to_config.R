@@ -1,21 +1,23 @@
-#install.packages("yaml")
+#Sys.setenv(PATH = paste("C:/Rtools/bin", Sys.getenv("PATH"), sep=";"))
+#Sys.setenv(BINPREF = "C:/Rtools/mingw_$(WIN)/bin/")
+
+#install.packages("renv")
+#library(renv)
+#renv::restore()
+
+install.packages("yaml")
 library(yaml)
 
 cwd <- getwd()
 # should not need this line in the near futures
 # hopefully R portable 
-cwd = "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts"
 
 parameters = yaml.load_file(paste0(cwd, "/config.yml"))
 
 # use gsub to comply with windows paths, just make it
-#input_dir <- gsub("\\\\", "/", parameters["input_dir"]) 
-#output_dir <- gsub("\\\\", "/", parameters["output_dir"])
-#tables <- parameters["tables_to_output"]
-
-input_dir <- "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input"
-output_dir <- "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_output"
-tables <- c("4.02", "4.03", "8.01", "10.03", "10.04", "706.03", "769.03", "958.03", "1021.03")
+input_dir <- gsub("\\\\", "/", parameters["input_dir"]) 
+output_dir <- gsub("\\\\", "/", parameters["output_dir"])
+tables <- parameters["tables_to_output"][[1]]
 
 read_prn_path = paste0(cwd, "/STOPS.R")
 source(read_prn_path)
@@ -25,3 +27,10 @@ source(process_table_path)
 
 summary_calculations_path = paste0(cwd, "/STOPS_Calculations.r")
 source(summary_calculations_path)
+
+print("Post Process successfully exported:")
+print(output_dir)
+
+
+Sys.setenv(JAVA_HOME='C:/Program Files/Java/jre1.8.0_121')
+Sys.getenv("JAVA_HOME")

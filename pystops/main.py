@@ -10,25 +10,28 @@ from shapely.geometry import LineString
 
 import read_16
 import post_process_functions
-import GTFS_processing 
+import GTFS_processing
 from helper_functions import table_out_file, stack_columns, tag_rail_routes
 import reader as pystops
+
 # %%
 
 CUR_DIR = Path(os.getcwd())
-#%%
+# %%
 OUTPUT_DIR = CUR_DIR / "visualizations" / "db01" / "data"
 GTFS_PATH = CUR_DIR / "gtfs_data" / "GTFOutput"
 
 ALL_GTFS_FOR_SHAPE = CUR_DIR / "gtfs_data" / "Inputs"
-GTFS_GEOJSON_OUTPUT_DIR = CUR_DIR / "visualizations" / "db01" /"data" / "GTFS" / "gtfs_shapes.geojson"
+GTFS_GEOJSON_OUTPUT_DIR = (
+    CUR_DIR / "visualizations" / "db01" / "data" / "GTFS" / "gtfs_shapes.geojson"
+)
 # %% ---------------------------------------------------------------------------------------
 # ================== README =====================
 # this section of populates input_files variables variable
 # if you know what you are doing feel free to populate the input_files manually
 # yourself, otherwise just change the input_folders and scenarios path
-# variable 
-#=================================================
+# variable
+# =================================================
 
 STOP_RUNS_PATH = CUR_DIR / "STOPS_runs"
 input_folders = {
@@ -41,7 +44,7 @@ input_folders = {
     "Scenario E": (STOP_RUNS_PATH / "E", "BLD-"),
 }
 # This will crawl the given folders and look for valid prn files to load in
-# input files is the important 
+# input files is the important
 input_files: dict[tuple[Path, int, str]] = dict()
 for input_names, (file_dir, scen_run) in input_folders.items():
     for scenario_path in (file_dir).glob("*Results.prn"):
@@ -82,7 +85,7 @@ tables = [
 # match table name with a filepath
 tables_and_outputs = [(table, table_out_file(table, OUTPUT_DIR)) for table in tables]
 
-#%%
+# %%
 # create output files
 output16_path = OUTPUT_DIR / "SECTION 16"
 output15_path = OUTPUT_DIR / "SECTION 15"
@@ -101,7 +104,9 @@ rail_routes = pd.Series(rail_routes)
 print("done\n")
 
 print("Combining GTFS, to create shapefiles...")
-GTFS_processing.create_shapefiles_from_gtfs_data(ALL_GTFS_FOR_SHAPE, GTFS_GEOJSON_OUTPUT_DIR)
+GTFS_processing.create_shapefiles_from_gtfs_data(
+    ALL_GTFS_FOR_SHAPE, GTFS_GEOJSON_OUTPUT_DIR
+)
 print("done\n")
 
 # %%
@@ -127,12 +132,13 @@ for table, output_path in tables_and_outputs:
             for table_name, df in all_csvs.items():
                 # TODO fix reader so this doesn't happen
                 df.rename(
-                    columns={"Perio": "Period", "d  Table No.": "Table No."}, inplace=True
-                )   
+                    columns={"Perio": "Period", "d  Table No.": "Table No."},
+                    inplace=True,
+                )
                 # print(df["Period"].unique())
                 df["Period"] = df["Period"].map({"Peak": "peak", "Off-Pe": "non_peak"})
 
-            # we will only concat the tables that are not already an aggregation 
+            # we will only concat the tables that are not already an aggregation
             concat_tables = [
                 "1023.01",
                 "1024.01",
@@ -148,13 +154,15 @@ for table, output_path in tables_and_outputs:
             # TODO fix this
             combined_csv.drop(columns="", inplace=True)
             combined_csv["Stop_ID"] = combined_csv["Stop_ID"].str.split().str[0]
-            
+
             replace_dict = {"EXST": "Existing", "NOBL": "No-Build", "BLD-": "Build"}
             slicer = combined_csv["SCENARIO"] == replace_dict[scen_run]
             assert slicer.sum() > 0
             combined_csv = combined_csv[slicer]
 
-            combined_csv["is_rail"] = tag_rail_routes(combined_csv["ROUTE"], rail_routes)
+            combined_csv["is_rail"] = tag_rail_routes(
+                combined_csv["ROUTE"], rail_routes
+            )
 
             combined_csv = stack_columns(
                 combined_csv, ["Boards", "Alights", "Leave-Load"]
@@ -271,13 +279,11 @@ post_process_functions.post_process_section_4(OUTPUT_DIR / "SECTION 4")
 
 print("Post Processing Section 10")
 post_process_functions.post_process_section_10(OUTPUT_DIR / "SECTION 10")
-#%%
-
 # %%
 
 # %%
 
-
 # %%
 
 
+# %%

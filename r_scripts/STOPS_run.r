@@ -30,7 +30,7 @@ for(fn in fname){
 setwd(output_dir)
 scenario <- gsub(".prn","", fn)
 dir <- paste(output_dir, scenario, sep = "/")
-  
+setwd(dir)
 CSVname <- list.files(pattern = ".csv")
 tabname <- lapply(CSVname, function(x) paste(scenario, x))
 tabname <- lapply(tabname, function(x) gsub(".csv", "",x))
@@ -38,6 +38,7 @@ names(CSVname) <- tabname
 
 ## Write CSV to workbook 
 for (nm in tabname) {
+    print(nm)
     ## ingest the CSV file
     temp_DT <- fread(CSVname[[nm]])
     
