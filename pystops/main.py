@@ -15,7 +15,7 @@ import GTFS_processing
 from helper_functions import table_out_file, stack_columns, tag_rail_routes
 import reader as pystops
 
-os.chdir(r"C:\Users\USLP095001\WSP O365\Metro_ABM_STOPS - 6_STOPS\client_package")
+os.chdir(r"C:\Users\USLP095001\Desktop\temp_files\client_package_deploy")
 CUR_DIR = Path(os.getcwd())
 OUTPUT_DIR = CUR_DIR / "visualizations" / "db01" / "data"
 GTFS_PATH = CUR_DIR / "gtfs_data" / "GTFOutput"
@@ -35,11 +35,11 @@ STOP_RUNS_PATH = CUR_DIR / "STOPS_runs"
 input_folders = {
     "Existing": (STOP_RUNS_PATH / "A", "EXST"),
     # "No Build": (STOP_RUNS_PATH / "A", "NOBL"),# this was requested to be removed, uncomment to re-add no build scenario
-    "Scenario A": (STOP_RUNS_PATH / "A", "BLD-"),
-    "Scenario B": (STOP_RUNS_PATH / "B", "BLD-"),
-    "Scenario C": (STOP_RUNS_PATH / "C", "BLD-"),
-    "Scenario D": (STOP_RUNS_PATH / "D", "BLD-"),
-    "Scenario E": (STOP_RUNS_PATH / "E", "BLD-"),
+    # "Scenario A": (STOP_RUNS_PATH / "A", "BLD-"),
+    # "Scenario B": (STOP_RUNS_PATH / "B", "BLD-"),
+    # "Scenario C": (STOP_RUNS_PATH / "C", "BLD-"),
+    # "Scenario D": (STOP_RUNS_PATH / "D", "BLD-"),
+    # "Scenario E": (STOP_RUNS_PATH / "E", "BLD-"),
 }
 # This will crawl the given folders and look for valid prn files to load in
 # input files is the important

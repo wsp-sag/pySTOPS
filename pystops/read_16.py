@@ -4,6 +4,7 @@ import numpy as np
 from pathlib import Path
 from typing import Callable
 
+
 # %%
 def find_line(line_iterator: iter, condition_met: Callable):
     """finds line where current line meats condition"""
@@ -16,9 +17,10 @@ def find_line(line_iterator: iter, condition_met: Callable):
 # TODO might replace with pandas methods read_fwt
 def read_table(line_iterator: iter) -> dict:
     """
-    given iterator at current line of a file, will read the next table and return it as a 
+    given iterator at current line of a file, will read the next table and return it as a
     dictionary.
     """
+
     def parse_line(line, column_break_loc):
         # +1 because we want to avoid the space between columns
         # print(column_break_loc)
@@ -50,6 +52,7 @@ def read_table(line_iterator: iter) -> dict:
             # get column names
             column_names = parse_line(prev_line, column_break_locations)
 
+
 def read_table_2(line_iterator: iter) -> dict:
     """
     A slight modificiation to the read table function as
@@ -71,7 +74,7 @@ def read_table_2(line_iterator: iter) -> dict:
     current_line = next(line_iterator)[:-1]
     while True:
         prev_line = current_line  # used for finding the header
-        current_line = next(line_iterator)#.strip()
+        current_line = next(line_iterator)  # .strip()
         # if column names is not none we have found table and are reading
         # Else, find a table
         current_line = current_line[:-1]
@@ -86,12 +89,15 @@ def read_table_2(line_iterator: iter) -> dict:
             list_of_col_width_strings = current_line.replace("=", "-").split(" -")
             # we want to recreate the original string before the split so add " -"
             # we subtract 1 because we want the location beween " " and "-
-            column_break_locations = np.cumsum([len(val + " -") for val in list_of_col_width_strings[:-1]]) - 2
-            
+            column_break_locations = (
+                np.cumsum([len(val + " -") for val in list_of_col_width_strings[:-1]])
+                - 2
+            )
+
             column_names = parse_line(prev_line, column_break_locations)
 
 
-def _to_pandas(data: list[list], col_names:list[str]):
+def _to_pandas(data: list[list], col_names: list[str]):
     data = np.array(data)
     return pd.DataFrame(data, columns=col_names)
 
@@ -103,22 +109,15 @@ def read_table_16(path):
             return False
 
         return temp_list[0] == "SECTION" and temp_list[1] == "16:"
-    
-    def find_table(line:str, num: str):
+
+    def find_table(line: str, num: str):
         temp_list = line.split()
         if len(temp_list) <= 1:
             return False
         return temp_list[0] == "Table" and temp_list[1] == num
-    
+
     # list of tables that point to sub tables
-    has_sub_tables = {
-        "1023.01", 
-        "1024.01", 
-        "1025.01", 
-        "1026.01", 
-        "1027.01", 
-        "1028.01"
-    } 
+    has_sub_tables = {"1023.01", "1024.01", "1025.01", "1026.01", "1027.01", "1028.01"}
 
     section_16_table_names = None
     with open(path, "r", errors="ignore") as report:
@@ -141,20 +140,21 @@ def read_table_16(path):
             # if there are no sub tables this will be taken as the final table
             final_table = main_table.copy()
 
-
             if table_name in has_sub_tables:
                 sub_tables_to_concat = []
                 for _, sub_table_att in main_table.iterrows():
                     sub_table_name = sub_table_att.iloc[-1]
                     # print(sub_table_name)
                     if sub_table_name != "":
-                        output_str = find_line(line_iterator, lambda x: find_table(x, sub_table_name))
+                        output_str = find_line(
+                            line_iterator, lambda x: find_table(x, sub_table_name)
+                        )
                         sub_table = _to_pandas(*read_table_2(line_iterator))
                         sub_table = sub_table[sub_table.iloc[:, -1] != ""]
                         sub_tables_to_concat.append(sub_table)
                         for att_name, att_val in sub_table_att.items():
                             sub_table[att_name] = att_val
-                    
+
                 # if there are sub tables this will be taken as the final table
                 final_table = pd.concat(sub_tables_to_concat)
 
@@ -164,4 +164,3 @@ def read_table_16(path):
             all_tables[table_name] = final_table
 
     return all_tables
-                

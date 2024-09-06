@@ -43,7 +43,8 @@ for (s in Year){
          rows <- c(rows, r)
          cols <- c(cols, c)
          last_value <- c(last_value, as.integer(m))
-         }
+      }
+  
   names(last_value) <- table_nos
   HBW_NTD = last_value$`769.03`-last_value$`706.03`
   HBW_TD = last_value$`706.03`

@@ -8,6 +8,7 @@
 install.packages("yaml")
 library(yaml)
 
+setwd("C:\\Users\\USLP095001\\code\\pytstops\\pySTOPS\\r_scripts")
 cwd <- getwd()
 # should not need this line in the near futures
 # hopefully R portable 
@@ -22,8 +23,10 @@ tables <- parameters["tables_to_output"][[1]]
 read_prn_path = paste0(cwd, "/STOPS.R")
 source(read_prn_path)
 
-process_table_path = paste0(cwd, "/STOPS_run.r")
-source(process_table_path)
+# process_table_path = paste0(cwd, "/STOPS_run.r")
+# source(process_table_path)
+input_dir
+output_dir = "C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/output_2"
 
 summary_calculations_path = paste0(cwd, "/STOPS_Calculations.r")
 source(summary_calculations_path)
