@@ -1,0 +1,6 @@
+Table    10.04
+ 
+***** OFF-PEAK TRIPS, MILES AND HOURS BY ROUTE ************
+Comparison of Weekday Operating Statistics by Scenario
+OFF-PEAK=any trip serving one or more stops between 10:00 am and 2:15 pm
+ 

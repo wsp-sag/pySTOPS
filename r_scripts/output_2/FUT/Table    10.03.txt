@@ -1,0 +1,6 @@
+Table    10.03
+ 
+***** PEAK TRIPS, MILES AND HOURS BY ROUTE ************
+Comparison of Weekday Operating Statistics by Scenario
+PEAK=any trip serving one or more stops between 5:00 am and 9:15 am
+ 
