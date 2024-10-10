@@ -9,6 +9,7 @@ from pathlib import Path
 import yaml
 
 
+# %%
 def find_table_line(line_iterator: iter, table_number: str) -> str:
     """finds line where table number is in"""
     while True:
@@ -34,24 +35,54 @@ def _stop_reading_table(line):
     return line == ""
 
 
+def _read_table_header(
+    line_iterator: iter,
+) -> tuple[iter, list[str] | list[tuple[str, str]]]:
+    """
+    we have 4 rows of text that look like this:
+    Y2023 EXISTING                   Y2023 NO-BUILD                   Y2023 BUILD
+    ================================ ================================ ================================
+    #Trips     Miles        Hours    #Trips     Miles        Hours    #Trips     Miles        Hours
+    ====== ============ ============ ====== ============ ============ ====== ============ ============
+
+    we will return something like this:
+    [
+        (Y2023 EXISTING, #Trips),
+        (Y2023 EXISTING, Miles),
+        (Y2023 EXISTING, Hours),
+        (Y2023 NO-BUILD, #Trips),
+        (Y2023 NO-BUILD, Miles),
+        (Y2023 NO-BUILD, Hours),
+        (Y2023 BUILD, #Trips),
+        (Y2023 BUILD, Miles),
+        (Y2023 BUILD, Hours),
+    ]
+    thinking: when we are reading column sub heading names
+    """
+    current_iterator, copied_iterator = tee(line_iterator)
+
+    start = 0
+    for index, string in copied_iterator:
+        start += 1
+        if start >= 13:
+            return None
+        print(repr(string[:-1]))
+
+    table_header = 10
+    return (current_iterator, table_header)
+
+
 def read_table(line_iterator: iter) -> dict:
     """
     given iterator at current line of a file, will read the next table and return it as a
     dictionary.
     """
 
-    def parse_line(line, column_break_loc):
-        # +1 because we want to avoid the space between columns
-        # print(column_break_loc)
-        starts = [0] + list(column_break_loc)
-        ends = list(column_break_loc) + [len(line) + 99999]
-        return [line[start:end].strip() for start, end in zip(starts, ends)]
-
     return_dict = dict()
     column_names: list[str] = None
     column_break_locations: list[str] = None
     rows = []
-
+    _read_table_header(line_iterator)
     index, unstriped_current_line = next(line_iterator)
     current_line = unstriped_current_line.strip()
     while True:
@@ -64,7 +95,7 @@ def read_table(line_iterator: iter) -> dict:
         if column_names is not None:
             if _stop_reading_table(current_line):
                 return rows, column_names
-            rows.append(parse_line(current_line, column_break_locations))
+            rows.append(_parse_line(current_line, column_break_locations))
 
         elif set(current_line) == {"-", " "} or set(current_line) == {"=", " "}:
             # May need to change .replace("  ", " ") in future
@@ -72,7 +103,7 @@ def read_table(line_iterator: iter) -> dict:
                 np.array(list(current_line.replace("  ", " "))) == " "
             )[0]
             # get column names
-            column_names = parse_line(prev_line, column_break_locations)
+            column_names = _parse_line(prev_line, column_break_locations)
 
 
 # # # TODO might replace with pandas methods read_fwt
@@ -240,9 +271,9 @@ def get_table(path: Union[str, Path], table_number: str):
 
 # input_path = Path(r"C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input")
 # get_table(input_path / "CUR.prn", "4.02")
-def main(config: dict):
-    input_dir = Path(config["input_dir"])
-    output_dir = Path(config["output_dir"])
+def main(input_dir: str, output_dir: str, tables_to_output: str):
+    input_dir = Path(input_dir)
+    output_dir = Path(output_dir)
     ret_dfs = []
 
     for prn_file_path in input_dir.glob("*.prn"):
@@ -250,7 +281,7 @@ def main(config: dict):
         print(name)
         os.makedirs(output_dir / name, exist_ok=True)
 
-        for table_number in config["tables_to_output"]:
+        for table_number in tables_to_output:
             text_table, df, table_name = get_table(prn_file_path, table_number)
             with open(output_dir / name / f"{table_name}.txt", "w") as f:
                 f.write(text_table)
@@ -270,7 +301,8 @@ if __name__ == "__main__":
     with open(cwd / "config.yml") as f:
         config = yaml.load(f, Loader=yaml.FullLoader)
 
-    dfs = main(config)
-
+    dfs = main(**config)
+# dfs[0]
 
 # %%
+"sadfaf\n"[:-1]
