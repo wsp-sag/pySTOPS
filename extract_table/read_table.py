@@ -36,7 +36,7 @@ def _stop_reading_table(line):
 
 
 def _read_table_header(
-    line_iterator: iter,
+    line_iterator: iter, heading_limit: int = 10
 ) -> tuple[iter, list[str] | list[tuple[str, str]]]:
     """
     we have 4 rows of text that look like this:
@@ -64,12 +64,12 @@ def _read_table_header(
     start = 0
     for index, string in copied_iterator:
         start += 1
-        if start >= 13:
-            return None
+        if start >= heading_limit:
+            raise ValueError("Table Not Found")
         print(repr(string[:-1]))
 
     table_header = 10
-    return (current_iterator, table_header)
+    return current_iterator, table_header
 
 
 def read_table(line_iterator: iter) -> dict:
@@ -82,7 +82,7 @@ def read_table(line_iterator: iter) -> dict:
     column_names: list[str] = None
     column_break_locations: list[str] = None
     rows = []
-    _read_table_header(line_iterator)
+    line_iterator, table_header = _read_table_header(line_iterator)
     index, unstriped_current_line = next(line_iterator)
     current_line = unstriped_current_line.strip()
     while True:
