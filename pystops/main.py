@@ -7,6 +7,7 @@ import geopandas as gpd
 from pathlib import Path
 from itertools import product
 from shapely.geometry import LineString
+import pprint
 
 
 import read_16
@@ -15,8 +16,11 @@ import GTFS_processing
 from helper_functions import table_out_file, stack_columns, tag_rail_routes
 import reader as pystops
 
-os.chdir(r"C:\Users\USLP095001\WSP O365\Metro_ABM_STOPS - 6_STOPS\client_package")
+os.chdir(r"C:\Users\USLP095001\code\pytstops\client_package_deploy")
 CUR_DIR = Path(os.getcwd())
+print("------------------- executing analysis in directory --------------------")
+print(CUR_DIR)
+print()
 OUTPUT_DIR = CUR_DIR / "visualizations" / "db01" / "data"
 GTFS_PATH = CUR_DIR / "gtfs_data" / "GTFOutput"
 
@@ -25,7 +29,7 @@ GTFS_GEOJSON_OUTPUT_DIR = (
     CUR_DIR / "visualizations" / "db01" / "data" / "GTFS" / "gtfs_shapes.geojson"
 )
 # ================== README =====================
-# this section of populates input_files variables variable
+# this section of populates input_files variables
 # if you know what you are doing feel free to populate the input_files manually
 # yourself, otherwise just change the input_folders and scenarios path
 # variable
@@ -33,13 +37,15 @@ GTFS_GEOJSON_OUTPUT_DIR = (
 
 STOP_RUNS_PATH = CUR_DIR / "STOPS_runs"
 input_folders = {
-    "Existing": (STOP_RUNS_PATH / "A", "EXST"),
-    # "No Build": (STOP_RUNS_PATH / "A", "NOBL"),# this was requested to be removed, uncomment to re-add no build scenario
-    "Scenario A": (STOP_RUNS_PATH / "A", "BLD-"),
-    "Scenario B": (STOP_RUNS_PATH / "B", "BLD-"),
-    "Scenario C": (STOP_RUNS_PATH / "C", "BLD-"),
-    "Scenario D": (STOP_RUNS_PATH / "D", "BLD-"),
-    "Scenario E": (STOP_RUNS_PATH / "E", "BLD-"),
+    "test": (STOP_RUNS_PATH / "Reports", "BLD-"),
+    "test2": (STOP_RUNS_PATH / "Reports", "BLD-"),
+    # "Existing": (STOP_RUNS_PATH / "A", "EXST"),
+    # # "No Build": (STOP_RUNS_PATH / "A", "NOBL"),# this was requested to be removed, uncomment to re-add no build scenario
+    # "Scenario A": (STOP_RUNS_PATH / "A", "BLD-"),
+    # "Scenario B": (STOP_RUNS_PATH / "B", "BLD-"),
+    # "Scenario C": (STOP_RUNS_PATH / "C", "BLD-"),
+    # "Scenario D": (STOP_RUNS_PATH / "D", "BLD-"),
+    # "Scenario E": (STOP_RUNS_PATH / "E", "BLD-"),
 }
 # This will crawl the given folders and look for valid prn files to load in
 # input files is the important
@@ -53,7 +59,9 @@ for input_names, (file_dir, scen_run) in input_folders.items():
         # if you would like to have multiple results.prn per folder
         # and you would like the year use the below line instead
         # input_files[f"{input_names}_{year}"] = (scenario_path, year, scen_run)
-print(input_files)
+print("--------------- found the following files to be analyzed ---------------")
+pprint.pprint(input_files)
+print()
 # %% ---------------------------------------------------------------------------------------
 
 tables = [
@@ -95,6 +103,7 @@ for i in range(1, 17):
 
 # %%
 print("Processing GTFS...")
+
 rail_routes = GTFS_processing.combine_gtfs_data(GTFS_PATH, OUTPUT_DIR)
 # rail routes are saved for later when we are processing table 16
 # not important right now
@@ -111,6 +120,9 @@ print("done\n")
 
 for table, output_path in tables_and_outputs:
 
+    print()
+    print(f"------------------------ Extracting Table {table} ------------------------")
+
     combined = []
     for scen_name, (report_file, year, scen_run) in input_files.items():
 
@@ -118,8 +130,7 @@ for table, output_path in tables_and_outputs:
             output_path.stem + "_" + scen_name + ".csv"
         )
 
-        print("------------------------------------------------------")
-        print(table, scen_name, write_path_for_table)
+        print(scen_name, ">> writing to >> ", write_path_for_table)
 
         if table == "SECTION 16":
             print("Parse Table Series in : {}".format(table))

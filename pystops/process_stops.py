@@ -2,12 +2,12 @@
 # This file is intended to be used for packaging the code into a single executable and is not the entry point
 # this is instended to allow for maximum portability and small changes to the existing py files
 # this code will need to be changed. if there is a change to the import
-# structure of the attached py files this may cause issues. If you
+# structure of the attached py files this may cause issues. If you 
 # doing serious development it is recomended that you create your own venv from requirements.txt
 # and run main.py from there
 # to build an exe move this file to the same directory as process stops.exe
 # and run pyinstaller process_stops.py --one file
-# %%
+#%%
 import pandas
 import geopandas
 import pathlib
@@ -17,7 +17,6 @@ import numpy
 from pathlib import Path
 import os
 import warnings
-
 warnings.filterwarnings("ignore")
 
 entry_py_file = "main"
@@ -27,16 +26,14 @@ entry_py_file = "main"
 #         self.namespace = {}
 #         exec(code_string, globals(), self.namespace)  # Execute code in the namespace
 
-
 #     def __getattr__(self, name):
 #         try:
 #             return self.namespace[name]  # Access attribute from the namespace
 #         except KeyError:
 #             raise AttributeError(f"Attribute '{name}' not found in namespace")
 class DictNamespace:
-    def __init__(self, d):
-        self.__dict__.update(d)
-
+  def __init__(self, d):
+    self.__dict__.update(d)
 
 def ExecInNamespace(namespace_name, file_path):
     namespace = {}
@@ -45,18 +42,13 @@ def ExecInNamespace(namespace_name, file_path):
         exec(code_string, globals(), namespace)
     globals()[namespace_name] = DictNamespace(namespace)  # Add namespace to globals
 
-
 CWD = Path(os.getcwd())
 
 with open((CWD / "python_scripts" / entry_py_file).with_suffix(".py")) as f:
     main_file = f.read()
 
 
-python_files = {
-    path.stem: path
-    for path in (CWD / "python_scripts").glob("*.py")
-    if path.name != entry_py_file
-}
+python_files = {path.stem: path for path in (CWD / "python_scripts").glob("*.py") if path.name != entry_py_file}
 
 lines_to_execute = []
 for line in main_file.split("\n"):
@@ -67,7 +59,7 @@ for line in main_file.split("\n"):
         else:
             module_name = line[7:].strip()
             namespace = module_name.strip()
-
+        
         if module_name in python_files:
             print(module_name, namespace)
             ExecInNamespace(namespace, python_files[module_name])
@@ -91,7 +83,7 @@ for line in main_file.split("\n"):
         lines_to_execute.append(line)
 
 # these files need to be in the global name space
-#
+# 
 with open(CWD / "python_scripts" / "helper_functions.py") as file:
     code_string = file.read()
     exec(code_string)
@@ -107,9 +99,9 @@ with open(CWD / "python_scripts" / "read_16.py") as file:
 with open(CWD / "python_scripts" / "post_process_functions.py") as file:
     code_string = file.read()
     exec(code_string)
-# %%
+#%%
 filtered_py = "\n".join(lines_to_execute)
 exec(filtered_py)
 
-# ExecInNamespace(
+        # ExecInNamespace(
 # %%
