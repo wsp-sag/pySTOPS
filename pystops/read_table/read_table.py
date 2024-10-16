@@ -68,8 +68,15 @@ def _breakup_according_to_column_breakup_array(
 
     return [
         _slice_string_with_bool_arr(buffered_line, buffered_breakup_array == col_index)
-        for col_index in range(max(column_breakup_array))
+        for col_index in range(max(column_breakup_array) + 1)
     ]
+
+
+def _tuple_lists_to_header(index_set: tuple[int], headers: list[list[str]]):
+    strings_to_join = []
+    for index, header_at_level in zip(index_set, headers):
+        strings_to_join.append(header_at_level[index].strip())
+    return tuple(strings_to_join)
 
 
 def _read_table_header(
@@ -127,7 +134,7 @@ def _read_table_header(
         line_string = line_string.replace("\n", "")
 
         if set(line_string) == {heading_character, " "}:
-            print(f"found heading definition {line_number}")
+            print(f"        Found Table Heading {line_number}")
             column_breakup_array = np.cumsum(
                 [
                     (current_char == " ") and (next_char == "=")
@@ -166,13 +173,15 @@ def _read_table_header(
         )
     # we want unique column combinations
     table_index_sets = set(table_index_join_table)
-    # sort indexes by first index, then second, then third ect
     table_index_sets = sorted(table_index_sets)
 
-    table_header = [table]
-    # iterate this to the table
-    print(table_header)
+    # sort indexes by first index, then second, then third ect
+    headers = [header for header, _ in headers_and_arrays]
 
+    table_header = [
+        _tuple_lists_to_header(index_set, headers) for index_set in table_index_sets
+    ]
+    # iterate this to the table
     return table_header, column_breakup_array, iterator_where_next_line_is_table
 
 
@@ -207,7 +216,9 @@ def read_table(line_iterator: LineIterator) -> dict:
     #         )[0]
     #         # get column names
     #         column_names = _parse_line(prev_line, column_break_locations)
-    _read_table_header(line_iterator)
+    table_header, breakup_array, line_iterator = _read_table_header(line_iterator)
+    print(table_header)
+    return None, None
 
 
 def _find_indexes_col_name(
@@ -280,7 +291,6 @@ def _parse_second_row(
         return_list.append(col_name + "_" + sub_col_name)
 
     # [line[start:end].strip() for start, end in zip(starts, ends)]
-    print(return_list)
     return return_list
 
 
@@ -313,16 +323,21 @@ def get_table(path: Union[str, Path], table_number: str):
         line_iterator = enumerate(iter(report))
 
         line_number, current_line = find_table_line(line_iterator, table_number)
-        print(f"   found: {current_line.strip()} on {line_number}")
+        print(f"    Found: {current_line.strip()}    on line: {line_number}")
 
         for_getting_csv, for_raw_text = tee(line_iterator)  # <- duplicates iterator
         text_table = _get_text_table(for_raw_text, current_line)
-        data, column_names = read_table(for_getting_csv)
-        data = [sub_row for sub_row in data if len(sub_row) == len(column_names)]
-        df = _to_pandas(data, column_names)
-        # *read_table(for_getting_csv)
+        assert False, (
+            "We should verify the integrity of the text table.\n"
+            "If it is bad revert to legacy mode and/or fix table before pandas"
+        )
+        # TODO Ideally re read in the text table we just made and make a new iterator
 
-    return text_table, df, current_line.strip()
+        data, column_names = read_table(for_getting_csv)
+        # data = [sub_row for sub_row in data if len(sub_row) == len(column_names)]
+        # df = _to_pandas(data, column_names)
+
+    # return text_table, df, current_line.strip()
 
 
 # input_path = Path(r"C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input")
@@ -334,22 +349,23 @@ def main(input_dir: str, output_dir: str, tables_to_output: str):
 
     for prn_file_path in input_dir.glob("*.prn"):
         name = prn_file_path.stem
-        print(name)
+        print(f"Reading {name}.prn")
         os.makedirs(output_dir / name, exist_ok=True)
 
         for table_number in tables_to_output:
-            text_table, df, table_name = get_table(prn_file_path, table_number)
-            with open(output_dir / name / f"{table_name}.txt", "w") as f:
-                f.write(text_table)
+            get_table(prn_file_path, table_number)
+    #         text_table, df, table_name = get_table(prn_file_path, table_number)
+    #         with open(output_dir / name / f"{table_name}.txt", "w") as f:
+    #             f.write(text_table)
 
-            # replace tab with a space for bacwards compatibility
-            split_table = table_name.split(" ")
+    #         # replace tab with a space for bacwards compatibility
+    #         split_table = table_name.split(" ")
 
-            formatted_name = f"{split_table[0]} {split_table[-1]}"
-            df.to_csv(output_dir / name / f"{formatted_name}.csv")
-            ret_dfs.append(df)
+    #         formatted_name = f"{split_table[0]} {split_table[-1]}"
+    #         df.to_csv(output_dir / name / f"{formatted_name}.csv")
+    #         ret_dfs.append(df)
 
-    return ret_dfs
+    # return ret_dfs
 
 
 if __name__ == "__main__":
