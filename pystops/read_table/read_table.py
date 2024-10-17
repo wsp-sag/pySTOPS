@@ -5,11 +5,13 @@ import os
 
 from itertools import tee
 from collections.abc import Iterator
-from typing import Callable, Union, Literal
+from typing import Callable, Union, Literal, NamedTuple
+from dataclasses import dataclass
 from pathlib import Path
 import yaml
 
 LineIterator = Iterator[tuple[int, str]]
+IsLastLineFunc = Callable[[str], bool]
 
 
 # %%
@@ -24,18 +26,6 @@ def find_table_line(line_iterator: LineIterator, table_number: str) -> tuple[int
 
             if table_number in split_line[-1]:
                 return line_number, current_line
-
-
-def _parse_line(line, column_break_loc):
-    # +1 because we want to avoid the space between columns
-    # print(column_break_loc)
-    starts = [0] + list(column_break_loc)
-    ends = list(column_break_loc) + [len(line) + 99999]
-    return [line[start:end].strip() for start, end in zip(starts, ends)]
-
-
-def _stop_reading_table(line):
-    return line == ""
 
 
 def _slice_string_with_bool_arr(string, bool_array):
@@ -134,7 +124,6 @@ def _read_table_header(
         line_string = line_string.replace("\n", "")
 
         if set(line_string) == {heading_character, " "}:
-            print(f"        Found Table Heading {line_number}")
             column_breakup_array = np.cumsum(
                 [
                     (current_char == " ") and (next_char == "=")
@@ -159,7 +148,7 @@ def _read_table_header(
         raise ValueError(f"Table Heading not found on around {line_number}")
 
     # we want to return an iterator at the correct location
-    for _ in range(num_to_iterate_return_iterator):
+    for _ in range(num_to_iterate_return_iterator + 1):
         next(iterator_where_next_line_is_table)
 
     # we have extracted data sets now we just need to map some things together
@@ -185,40 +174,39 @@ def _read_table_header(
     return table_header, column_breakup_array, iterator_where_next_line_is_table
 
 
-def read_table(line_iterator: LineIterator) -> dict:
+def _general_stop_reading_table(
+    line,
+    distance_from_table_name: int | None = None,
+    min_table_length_from_table_name: int = 10,
+):
+    """check if line is the end of a table"""
+    if distance_from_table_name is not None:
+        if distance_from_table_name <= min_table_length_from_table_name:
+            return False
+
+    return line == ""
+
+
+def _get_dataframe(
+    line_iterator: LineIterator, text_ends_table: IsLastLineFunc
+) -> dict:
     """
     given iterator at current line of a file, will read the next table and return it as a
     dictionary.
     """
 
-    # column_names: list[str] = None
-    # column_break_locations: list[str] = None
-    # rows = []
-    # line_number, table_header = _read_table_header(line_iterator)
-    # index, unstriped_current_line = next(line_iterator)
-    # current_line = unstriped_current_line.strip()
-    # while True:
-    #     prev_line = current_line  # used for finding the header
-    #     prev_unstriped_line = unstriped_current_line
-    #     index, unstriped_current_line = next(line_iterator)
-    #     current_line = unstriped_current_line.strip()
-    #     # if column names is not none we have found table and are reading
-    #     # Else, find a table
-    #     if column_names is not None:
-    #         if _stop_reading_table(current_line):
-    #             return rows, column_names
-    #         rows.append(_parse_line(current_line, column_break_locations))
-
-    #     elif set(current_line) == {"-", " "} or set(current_line) == {"=", " "}:
-    #         # May need to change .replace("  ", " ") in future
-    #         column_break_locations = np.where(
-    #             np.array(list(current_line.replace("  ", " "))) == " "
-    #         )[0]
-    #         # get column names
-    #         column_names = _parse_line(prev_line, column_break_locations)
     table_header, breakup_array, line_iterator = _read_table_header(line_iterator)
-    print(table_header)
-    return None, None
+
+    rows = []
+    for line_number, line_text in line_iterator:
+        line_text = line_text.replace("\n", "")
+        if text_ends_table(line_text):
+            break
+        rows.append(
+            _breakup_according_to_column_breakup_array(line_text, breakup_array)
+        )
+
+    return pd.DataFrame(np.array(rows), columns=table_header)
 
 
 def _find_indexes_col_name(
@@ -243,62 +231,6 @@ def _find_indexes_col_name(
     return start_index, end_index
 
 
-def _parse_second_row(
-    line,
-    column_break_loc,
-    previous_column_names,
-    previous_column_break_footer,
-):
-    """
-    we have 4 rows of text that look like this:
-    Y2023 EXISTING                   Y2023 NO-BUILD                   Y2023 BUILD
-    ================================ ================================ ================================
-    #Trips     Miles        Hours    #Trips     Miles        Hours    #Trips     Miles        Hours
-    ====== ============ ============ ====== ============ ============ ====== ============ ============
-
-    we will return something like this:
-    [
-        (Y2023 EXISTING, #Trips),
-        (Y2023 EXISTING, Miles),
-        (Y2023 EXISTING, Hours),
-        (Y2023 NO-BUILD, #Trips),
-        (Y2023 NO-BUILD, Miles),
-        (Y2023 NO-BUILD, Hours),
-        (Y2023 BUILD, #Trips),
-        (Y2023 BUILD, Miles),
-        (Y2023 BUILD, Hours),
-    ]
-    thinking: when we are reading column sub heading names
-    we go up 1 level
-    we go left until we see a space
-    we go right until we see space
-    then read these indexes from those indexes
-    strip it
-    that is the super column name
-    """
-
-    starts = [0] + list(column_break_loc)
-    ends = list(column_break_loc) + [len(line) + 99999]
-
-    return_list = []
-    for sub_col_start, sub_col_end in zip(starts, ends):
-        sub_col_name = line[sub_col_start:sub_col_end].strip()
-        col_start, col_end = _find_indexes_col_name(
-            previous_column_break_footer, sub_col_start
-        )
-        col_name = previous_column_names[col_start:col_end].strip()
-
-        return_list.append(col_name + "_" + sub_col_name)
-
-    # [line[start:end].strip() for start, end in zip(starts, ends)]
-    return return_list
-
-
-def _to_pandas(data: list[list], col_names: list[str]):
-    data = np.array(data)
-    return pd.DataFrame(data, columns=col_names)
-
-
 def _get_text_table(line_iterator: Iterator[int, str], current_line_string):
     text = current_line_string
 
@@ -306,12 +238,107 @@ def _get_text_table(line_iterator: Iterator[int, str], current_line_string):
     index, line = next(line_iterator)
     text = text + line
     # iterate until blank line
+    distance_from_table_name = 0
     while True:
         index, line = next(line_iterator)
         text = text + line
-
-        if _stop_reading_table(line.strip()):
+        distance_from_table_name = distance_from_table_name + 1
+        if _general_stop_reading_table(
+            line.strip(), distance_from_table_name=distance_from_table_name
+        ):
             return text
+
+
+def txt_block_to_array(text_block: str) -> np.ndarray:
+    lines = text_block.split("\n")
+    max_len = max(len(line) for line in lines)
+    padded_lines = [list(line.ljust(max_len)) for line in lines]
+    return np.array(padded_lines)
+
+
+def fill_start_of_line_with_string_if_header(
+    text_block: str, heading_char: str = "="
+) -> str:
+    """
+    just takes a block of text like this:
+
+                                                            Y2023 EXISTING                   Y2023 NO-BUILD                   Y2023 BUILD
+                                                            ================================ ================================ ================================
+    Route_ID                 --Route Name                   #Trips     Miles        Hours    #Trips     Miles        Hours    #Trips     Miles        Hours
+    ======================================================= ====== ============ ============ ====== ============ ============ ====== ============ ============
+    1&T                      --1-Dixie Hwy/Florence             22       329.57        25.30     22       329.57        25.30     22       329.57        25.30
+    1-348&L                  --1-Mt. Adams - Eden Park           9        30.01         2.62      0         0.00         0.00      0         0.00         0.00
+
+    and turns it into this:
+
+
+                                                            Y2023 EXISTING                   Y2023 NO-BUILD                   Y2023 BUILD
+    ======================================================================================== ================================ ================================
+    Route_ID                 --Route Name                   #Trips     Miles        Hours    #Trips     Miles        Hours    #Trips     Miles        Hours
+    ======================================================= ====== ============ ============ ====== ============ ============ ====== ============ ============
+    1&T                      --1-Dixie Hwy/Florence             22       329.57        25.30     22       329.57        25.30     22       329.57        25.30
+    1-348&L                  --1-Mt. Adams - Eden Park           9        30.01         2.62      0         0.00         0.00      0         0.00         0.00
+    """
+    fixed_string_rows = []
+    for line in text_block.split("\n"):
+        if set(line) == {heading_char, " "}:
+            filled_start_line = False
+            to_be_line = []
+            for char in line:
+                if not filled_start_line:
+                    to_be_line.append(heading_char)
+                else:
+                    to_be_line.append(char)
+            line = "".join(to_be_line)
+
+        fixed_string_rows.append(line)
+    return "\n".join(fixed_string_rows)
+
+
+def verify_table(text_block: str, *, align_radius: int = 3) -> tuple[bool, str | None]:
+    """
+    given a text_block, verify that the table is correct, if it is correct
+    it should be able to turn into a csv, otherwise we will suggest a fix and return that
+    table.
+
+    returns:
+        arg 1: bool: weather the table
+        arg 2: str | None: if arg 1 is True, will return a fixed string
+    This function verifies the following defects:
+
+    DEFECT 1: Columns dont align:
+        sometimes, tables will have headers that slightly miss-align with the columns
+        EG:
+            txt1    txt2      tx3
+            ------ ---------- -----
+               27.2         16   foo
+               28.3         01   bar
+
+        DETECTION CRITERIA: " " in heading footer should be blank in all lines below header
+
+        FIX:
+            POTENTIAL!!!!! Not Implemented Yet
+            Move header / table left/right until realigned
+
+    DEFECT 2:
+        ...
+    """
+    for_text_array = fill_start_of_line_with_string_if_header(text_block)
+    text_array = txt_block_to_array(for_text_array)
+
+    # Initialise as array of false
+    where_heading_has_empty_string: np.ndarray = 1 == np.zeros_like(text_array[0])
+    for row_index, row in enumerate(text_array):
+        if set(row) == {" ", "="}:
+            where_heading_has_empty_string = row == " "
+        elif set(row) == {" ", "-"}:
+            where_heading_has_empty_string = row == " "
+        elif set(row[where_heading_has_empty_string]) == set():
+            ...  # flow control, make sure it doesnt go to next line
+        elif set(row[where_heading_has_empty_string]) != {" "}:
+            return False, None
+
+    return True, None
 
 
 def get_table(path: Union[str, Path], table_number: str):
@@ -323,21 +350,20 @@ def get_table(path: Union[str, Path], table_number: str):
         line_iterator = enumerate(iter(report))
 
         line_number, current_line = find_table_line(line_iterator, table_number)
-        print(f"    Found: {current_line.strip()}    on line: {line_number}")
+        table_name = current_line.strip()
+        print(f"    Found: {table_name}    on line: {line_number}")
 
         for_getting_csv, for_raw_text = tee(line_iterator)  # <- duplicates iterator
         text_table = _get_text_table(for_raw_text, current_line)
-        assert False, (
-            "We should verify the integrity of the text table.\n"
-            "If it is bad revert to legacy mode and/or fix table before pandas"
-        )
-        # TODO Ideally re read in the text table we just made and make a new iterator
 
-        data, column_names = read_table(for_getting_csv)
-        # data = [sub_row for sub_row in data if len(sub_row) == len(column_names)]
-        # df = _to_pandas(data, column_names)
+        table_is_verified, fixed_table = verify_table(text_table)
+        if not table_is_verified:
+            raise NotImplementedError("Need to implement Manual Fixes")
 
-    # return text_table, df, current_line.strip()
+        df = _get_dataframe(for_getting_csv, _general_stop_reading_table)
+        df.to_clipboard()
+
+    return text_table, df, table_name
 
 
 # input_path = Path(r"C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input")
@@ -353,17 +379,16 @@ def main(input_dir: str, output_dir: str, tables_to_output: str):
         os.makedirs(output_dir / name, exist_ok=True)
 
         for table_number in tables_to_output:
-            get_table(prn_file_path, table_number)
-    #         text_table, df, table_name = get_table(prn_file_path, table_number)
-    #         with open(output_dir / name / f"{table_name}.txt", "w") as f:
-    #             f.write(text_table)
+            text_table, df, table_name = get_table(prn_file_path, table_number)
+            with open(output_dir / name / f"{table_name}.txt", "w") as f:
+                f.write(text_table)
 
-    #         # replace tab with a space for bacwards compatibility
-    #         split_table = table_name.split(" ")
+            # replace tab with a space for bacwards compatibility
+            split_table = table_name.split(" ")
 
-    #         formatted_name = f"{split_table[0]} {split_table[-1]}"
-    #         df.to_csv(output_dir / name / f"{formatted_name}.csv")
-    #         ret_dfs.append(df)
+            formatted_name = f"{split_table[0]} {split_table[-1]}"
+            df.to_csv(output_dir / name / f"{formatted_name}.csv")
+            ret_dfs.append(df)
 
     # return ret_dfs
 
