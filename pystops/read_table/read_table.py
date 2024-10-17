@@ -206,7 +206,7 @@ def _get_dataframe(
             _breakup_according_to_column_breakup_array(line_text, breakup_array)
         )
 
-    return pd.DataFrame(np.array(rows), columns=table_header)
+    return pd.DataFrame(np.array(rows), columns=pd.MultiIndex.from_tuples(table_header))
 
 
 def _find_indexes_col_name(
@@ -399,4 +399,3 @@ if __name__ == "__main__":
         config = yaml.load(f, Loader=yaml.FullLoader)
 
     dfs = main(**config)
-# dfs[0]
