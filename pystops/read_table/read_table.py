@@ -13,8 +13,37 @@ import yaml
 LineIterator = Iterator[tuple[int, str]]
 IsLastLineFunc = Callable[[str], bool]
 
+MAX_TABLE_PREAMBLE_LINES = 15
+
+# the status of these tables is unverified, if we are told to read them
+# skip it
+FAILURE_TABLE_NUMBERS = ["2.03", "2.04", "2.05", "11.04", "12.01"]
+
 
 # %%
+def is_heading_footer(text_line: str) -> bool:
+    """
+    there are a few forms in a prn file but generally they look something like one of the examples
+
+    Example 1:
+        Idist     Downt    Downt    West
+        ======= ======== ======== ========   <-this line
+
+
+    Example 2:
+                                                 | Y2023 EXISTING | Y2023 NO-BUILD |
+         HH Cars Sub-mode            Access mode |  Model  Survey |  Model  Survey |
+        ======= =================== =============| ======= =======| ======= =======| <- this line here
+    """
+    cleaned_text = text_line.replace("\n", "")
+    line_characters = set(cleaned_text)
+    return (
+        line_characters != set()
+        and line_characters != set(" ")
+        and line_characters.issubset({" ", "-", "=", "|"})
+    )
+
+
 def find_table_line(line_iterator: LineIterator, table_number: str) -> tuple[int, str]:
     """finds line where table number is in"""
     while True:
@@ -72,7 +101,7 @@ def _tuple_lists_to_header(index_set: tuple[int], headers: list[list[str]]):
 def _read_table_header(
     line_iterator: LineIterator,
     heading_character: Literal["=", "-"] = "=",  # is usually -
-    max_number_of_heading_lines: int = 10,
+    max_number_of_heading_lines: int = MAX_TABLE_PREAMBLE_LINES,
 ) -> tuple[list[tuple[str, str]], np.ndarray, LineIterator]:
     """
     there are a couple cases this function needs to handle
@@ -123,7 +152,7 @@ def _read_table_header(
         # ignore new line character
         line_string = line_string.replace("\n", "")
 
-        if set(line_string) == {heading_character, " "}:
+        if is_heading_footer(line_string):
             column_breakup_array = np.cumsum(
                 [
                     (current_char == " ") and (next_char == "=")
@@ -177,7 +206,7 @@ def _read_table_header(
 def _general_stop_reading_table(
     line,
     distance_from_table_name: int | None = None,
-    min_table_length_from_table_name: int = 10,
+    min_table_length_from_table_name: int = MAX_TABLE_PREAMBLE_LINES,
 ):
     """check if line is the end of a table"""
     if distance_from_table_name is not None:
@@ -207,28 +236,6 @@ def _get_dataframe(
         )
 
     return pd.DataFrame(np.array(rows), columns=pd.MultiIndex.from_tuples(table_header))
-
-
-def _find_indexes_col_name(
-    input_string: str,
-    location: int,
-    character: str = "=",
-) -> tuple[int, int]:
-    """
-    input string: "    ===   == ======="
-    start index: 6      ^ this character in the string
-    returns: (4, 8)   ^   ^ those locations
-    """
-    mask = [char == character for char in input_string] + [False]
-    end_index = location
-    start_index = location
-    while mask[end_index]:
-        end_index += 1
-
-    while mask[end_index]:
-        start_index -= 1
-
-    return start_index, end_index
 
 
 def _get_text_table(line_iterator: Iterator[int, str], current_line_string):
@@ -329,9 +336,7 @@ def verify_table(text_block: str, *, align_radius: int = 3) -> tuple[bool, str |
     # Initialise as array of false
     where_heading_has_empty_string: np.ndarray = 1 == np.zeros_like(text_array[0])
     for row_index, row in enumerate(text_array):
-        if set(row) == {" ", "="}:
-            where_heading_has_empty_string = row == " "
-        elif set(row) == {" ", "-"}:
+        if is_heading_footer("".join(row)):
             where_heading_has_empty_string = row == " "
         elif set(row[where_heading_has_empty_string]) == set():
             ...  # flow control, make sure it doesnt go to next line
@@ -341,7 +346,7 @@ def verify_table(text_block: str, *, align_radius: int = 3) -> tuple[bool, str |
     return True, None
 
 
-def get_table(path: Union[str, Path], table_number: str):
+def get_table(path: Union[str, Path], table_number: str, error_on_bad: bool = True):
 
     with open(path, "r", errors="ignore") as report:
         # we are going to have a fairly complex state so we are
@@ -349,7 +354,11 @@ def get_table(path: Union[str, Path], table_number: str):
         # note this can only work down the report
         line_iterator = enumerate(iter(report))
 
-        line_number, current_line = find_table_line(line_iterator, table_number)
+        try:
+            line_number, current_line = find_table_line(line_iterator, table_number)
+        except StopIteration():
+            print("MISSING: Table Not Found")
+
         table_name = current_line.strip()
         print(f"    Found: {table_name}    on line: {line_number}")
 
@@ -357,8 +366,11 @@ def get_table(path: Union[str, Path], table_number: str):
         text_table = _get_text_table(for_raw_text, current_line)
 
         table_is_verified, fixed_table = verify_table(text_table)
-        if not table_is_verified:
+
+        if error_on_bad and not table_is_verified:
             raise NotImplementedError("Need to implement Manual Fixes")
+        elif not table_is_verified:
+            print("        WARNING: UNSUCCESSFULLY VERIFIED TABLE")
 
         df = _get_dataframe(for_getting_csv, _general_stop_reading_table)
         df.to_clipboard()
@@ -366,9 +378,12 @@ def get_table(path: Union[str, Path], table_number: str):
     return text_table, df, table_name
 
 
-# input_path = Path(r"C:/Users/USLP095001/code/pytstops/pySTOPS/r_scripts/example_input")
-# get_table(input_path / "CUR.prn", "4.02")
-def main(input_dir: str, output_dir: str, tables_to_output: str):
+def main(
+    input_dir: str,
+    output_dir: str,
+    tables_to_output: str,
+    error_if_cant_verify: bool = False,
+):
     input_dir = Path(input_dir)
     output_dir = Path(output_dir)
     ret_dfs = []
@@ -379,7 +394,9 @@ def main(input_dir: str, output_dir: str, tables_to_output: str):
         os.makedirs(output_dir / name, exist_ok=True)
 
         for table_number in tables_to_output:
-            text_table, df, table_name = get_table(prn_file_path, table_number)
+            text_table, df, table_name = get_table(
+                prn_file_path, table_number, error_if_cant_verify
+            )
             with open(output_dir / name / f"{table_name}.txt", "w") as f:
                 f.write(text_table)
 
