@@ -5,6 +5,7 @@ import os
 
 from itertools import tee
 from collections.abc import Iterator
+from collections import defaultdict
 from typing import Callable, Union, Literal, NamedTuple
 from dataclasses import dataclass
 from pathlib import Path
@@ -12,12 +13,68 @@ import yaml
 
 LineIterator = Iterator[tuple[int, str]]
 IsLastLineFunc = Callable[[str], bool]
+PostProcessorFunc = Callable[[pd.DataFrame, str], pd.DataFrame]
 
 MAX_TABLE_PREAMBLE_LINES = 15
 
 # the status of these tables is unverified, if we are told to read them
 # skip it
 FAILURE_TABLE_NUMBERS = ["2.03", "2.04", "2.05", "11.04", "12.01"]
+
+
+def post_processors_row_has_n_line_header(
+    df: pd.DataFrame,
+    text_block: str,
+    number_of_rows_header: int = 2,
+    sep_char: str = "|",
+) -> pd.DataFrame:
+    """
+    for when we cant dynamically infer the number of heading rows
+    EXAMPLE:
+        Origin Group      1      2      3      4      5      6
+                     R-DTLA R-NVER R-CVER R-SVER R-CLA  R-SLA
+        ============ ====== ====== ====== ====== ====== ======
+
+    should return dataframe with columns that look like:
+        ['Origin Group\n', '1\nR-DTLA', '2\nR-NVER' ...]
+
+    """
+    return_df = df.copy()  # avoid side effects
+    lines = text_block.split("\n")
+    line_index = 0
+
+    while not is_heading_footer(lines[line_index]):
+        line_index = line_index + 1
+
+    breakup_array = column_breakup_array_from_heading_footer(lines[line_index])
+
+    column_headings = []
+    for _ in range(number_of_rows_header):
+        line_index = line_index - 1
+        column_headings.append(
+            [
+                col_text.strip()
+                for col_text in _breakup_according_to_column_breakup_array(
+                    lines[line_index], breakup_array
+                )
+            ]
+        )
+
+    column_names = [
+        sep_char.join(headers_across_lines)
+        for headers_across_lines in zip(*column_headings)
+    ]
+    return_df.columns = column_names
+    return return_df
+
+
+DATAFRAME_POST_PROCESSORS: dict[str, list[PostProcessorFunc]] = defaultdict(
+    list,
+    {
+        "2.04": [post_processors_row_has_n_line_header],
+        "2.05": [post_processors_row_has_n_line_header],
+    },
+)
 
 
 # %%
@@ -68,6 +125,27 @@ def _slice_string_with_bool_arr(string, bool_array):
 def _breakup_according_to_column_breakup_array(
     line: str, column_breakup_array: np.ndarray
 ):
+    """
+    breaks up column according to column breakup array generated
+    by heading footer
+
+    Example we have the strings defining a table:
+        heading_footer    = "====== ===== ========== ====="
+        line_of_col_row_1 = "blah     233     17.2-2  asd"
+        line_of_col_row_2 = "glah     199     00.2-1  kha "
+        ...
+
+        cba = column_breakup_array_from_heading_footer(heading_footer)
+        _breakup_according_to_column_breakup_array(
+            line_of_col_row_1, cba
+        )
+
+        RETURNS:
+            ['blah', '233', '17.2-2', 'asd']
+
+
+    """
+
     # shouldnt need this line, but it is in for safety
     line = line.replace("\n", "")
 
@@ -153,14 +231,7 @@ def _read_table_header(
         line_string = line_string.replace("\n", "")
 
         if is_heading_footer(line_string):
-            column_breakup_array = np.cumsum(
-                [
-                    (current_char == " ") and (next_char == "=")
-                    for current_char, next_char in zip(
-                        line_string[0:-1], line_string[1:]
-                    )
-                ]
-            )
+            column_breakup_array = column_breakup_array_from_heading_footer(line_string)
             headers_and_arrays.append(
                 (
                     _breakup_according_to_column_breakup_array(
@@ -201,6 +272,29 @@ def _read_table_header(
     ]
     # iterate this to the table
     return table_header, column_breakup_array, iterator_where_next_line_is_table
+
+
+def column_breakup_array_from_heading_footer(line_string):
+    """
+    creates a column breakup array from heading footer
+    EXAMPLE:
+        input_string = '======= ========= ======= === ===='
+        column_breakup_array_from_heading_footer(input_string)
+
+    RETURNS:
+        np.array('0000000111111111122222222333344444')
+
+    NOTE:
+        These arrays line up like this:
+        ======= ========= ======= === ====
+        0000000111111111122222222333344444
+    """
+    return np.cumsum(
+        [
+            (current_char == " ") and (next_char == "=")
+            for current_char, next_char in zip(line_string[0:-1], line_string[1:])
+        ]
+    )
 
 
 def _general_stop_reading_table(
@@ -363,9 +457,9 @@ def get_table(path: Union[str, Path], table_number: str, error_on_bad: bool = Tr
         print(f"    Found: {table_name}    on line: {line_number}")
 
         for_getting_csv, for_raw_text = tee(line_iterator)  # <- duplicates iterator
-        text_table = _get_text_table(for_raw_text, current_line)
+        text_block = _get_text_table(for_raw_text, current_line)
 
-        table_is_verified, fixed_table = verify_table(text_table)
+        table_is_verified, fixed_table = verify_table(text_block)
 
         if error_on_bad and not table_is_verified:
             raise NotImplementedError("Need to implement Manual Fixes")
@@ -373,9 +467,11 @@ def get_table(path: Union[str, Path], table_number: str, error_on_bad: bool = Tr
             print("        WARNING: UNSUCCESSFULLY VERIFIED TABLE")
 
         df = _get_dataframe(for_getting_csv, _general_stop_reading_table)
-        df.to_clipboard()
 
-    return text_table, df, table_name
+        for post_process in DATAFRAME_POST_PROCESSORS[table_number]:
+            df = post_process(df, text_block)
+
+    return text_block, df, table_name
 
 
 def main(
