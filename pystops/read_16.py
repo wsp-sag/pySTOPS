@@ -128,6 +128,9 @@ def read_table_16(path):
         output_str = find_line(line_iterator, find_section_16_heading)
         table_names_df = _to_pandas(*read_table(line_iterator))
 
+        # we should never have more tables then this hopefully depricate this whole file too
+        table_names_df = table_names_df.head(8)
+
         all_tables = {}
         for _, table_att in table_names_df.iterrows():
             table_name = table_att.iloc[-1]

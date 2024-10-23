@@ -457,6 +457,8 @@ def get_table(path: Union[str, Path], table_number: str, error_on_bad: bool = Tr
         print(f"    Found: {table_name}    on line: {line_number}")
 
         for_getting_csv, for_raw_text = tee(line_iterator)  # <- duplicates iterator
+
+        # Should Never Crash
         text_block = _get_text_table(for_raw_text, current_line)
 
         table_is_verified, fixed_table = verify_table(text_block)
